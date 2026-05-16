@@ -1,3 +1,4 @@
+
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext';
 
@@ -33,7 +34,7 @@ export default function ManagementLayout() {
         <div className="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between gap-4">
 
           <div className="flex items-center gap-3 shrink-0">
-            <img src="/ksg-logo.png" alt="KSG" className="h-8 w-auto brightness-0 invert" />
+            <img src="/ksg-logo.png" alt="KSG" className="h-8 w-auto" />
             <span className="hidden sm:block text-white/30 text-xs font-medium border-l border-white/20 pl-3">
               Admin
             </span>

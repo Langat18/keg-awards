@@ -31,7 +31,7 @@ export default function StaffLayout() {
 
       <header className="bg-[#7F622C] sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between gap-4">
-          <img src="/ksg-logo.png" alt="KSG" className="h-8 w-auto brightness-0 invert shrink-0" />
+          <img src="/ksg-logo.png" alt="KSG" className="h-8 w-auto shrink-0" />
 
           <nav className="flex gap-0.5">
             {NAV_LINKS.map(l => (

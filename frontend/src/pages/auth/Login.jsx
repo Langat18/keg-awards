@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext';
@@ -31,7 +32,7 @@ export default function Login() {
 
       {/* Left — brand panel */}
       <div className="hidden lg:flex w-5/12 bg-[#7F622C] flex-col p-12">
-        <img src="/ksg-logo.png" alt="KSG" className="h-11 w-auto brightness-0 invert mb-auto" />
+        <img src="/ksg-logo.png" alt="KSG" className="h-11 w-auto mb-auto" />
         <div className="mb-auto">
           <h2 className="text-white text-4xl font-black leading-tight mb-4">
             Empowering<br />the Public<br />Service.
@@ -43,12 +44,9 @@ export default function Login() {
         <div className="h-1 w-12 bg-[#CBD300] rounded-full" />
       </div>
 
-      {/* Right — form */}
       <div className="flex-1 flex flex-col bg-[#f7f6f3]">
-
-        {/* Mobile header */}
         <div className="lg:hidden px-6 py-5 bg-[#7F622C]">
-          <img src="/ksg-logo.png" alt="KSG" className="h-9 w-auto brightness-0 invert" />
+          <img src="/ksg-logo.png" alt="KSG" className="h-9 w-auto lg:hidden" />
         </div>
 
         <div className="flex-1 flex items-center justify-center px-6 py-12">
