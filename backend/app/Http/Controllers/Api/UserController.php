@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -7,7 +8,6 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    // Staff: nominee picker (exclude self, show active only)
     public function index(Request $request)
     {
         return response()->json(
@@ -19,7 +19,6 @@ class UserController extends Controller
         );
     }
 
-    // Admin: full user list
     public function adminIndex()
     {
         return response()->json(
@@ -29,11 +28,10 @@ class UserController extends Controller
         );
     }
 
-    // Admin: activate / deactivate a staff account
     public function toggleActive(User $user)
     {
         if ($user->role === 'admin') {
-            return response()->json(['message' => 'Admin accounts cannot be deactivated this way.'], 422);
+            return response()->json(['message' => 'Admin accounts cannot be deactivated.'], 422);
         }
 
         $user->update(['is_active' => ! $user->is_active]);
@@ -42,5 +40,20 @@ class UserController extends Controller
             'message'   => $user->is_active ? 'Account activated.' : 'Account deactivated.',
             'is_active' => $user->is_active,
         ]);
+    }
+
+    public function destroy(User $user)
+    {
+        if ($user->role === 'admin') {
+            return response()->json(['message' => 'Admin accounts cannot be deleted.'], 422);
+        }
+
+        if ($user->is_active) {
+            return response()->json(['message' => 'Deactivate the account before deleting.'], 422);
+        }
+
+        $user->delete();
+
+        return response()->json(['message' => 'User deleted.']);
     }
 }

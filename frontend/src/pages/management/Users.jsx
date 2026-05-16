@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useToast } from '../../components/Toast';
 import { PageSkeleton } from '../../components/Skeleton';
@@ -34,6 +33,20 @@ export default function ManageUsers() {
     }
   }
 
+  async function destroy(userId) {
+    if (!confirm('Permanently delete this user? This cannot be undone.')) return;
+    setBusy(b => ({ ...b, [userId]: true }));
+    try {
+      await api.delete(`/admin/users/${userId}`);
+      setUsers(u => u.filter(x => x.id !== userId));
+      toast.success('User deleted.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete user.');
+    } finally {
+      setBusy(b => ({ ...b, [userId]: false }));
+    }
+  }
+
   const filtered = users.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -49,13 +62,12 @@ export default function ManageUsers() {
         {users.length} registered user{users.length !== 1 ? 's' : ''}
       </p>
 
-      {/* Search */}
       <input
         type="text"
         placeholder="Search by name, email, or department…"
         value={search}
         onChange={e => setSearch(e.target.value)}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7F622C] mb-4"
+        className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7F622C] mb-4 bg-white"
       />
 
       <Card padding={false} className="overflow-hidden">
@@ -79,7 +91,7 @@ export default function ManageUsers() {
               </tr>
             )}
             {filtered.map(u => (
-              <tr key={u.id} className={`hover:bg-gray-50 transition-colors ${!u.is_active ? 'opacity-50' : ''}`}>
+              <tr key={u.id} className={`hover:bg-gray-50 transition-colors ${!u.is_active ? 'opacity-60' : ''}`}>
                 <td className="px-4 py-3 font-medium text-gray-800">{u.name}</td>
                 <td className="px-4 py-3 text-gray-500 text-xs">{u.email}</td>
                 <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{u.department || '—'}</td>
@@ -91,19 +103,31 @@ export default function ManageUsers() {
                     {u.is_active ? '● Active' : '● Inactive'}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3">
                   {u.role !== 'admin' && (
-                    <button
-                      onClick={() => toggle(u.id)}
-                      disabled={busy[u.id]}
-                      className={`text-xs px-3 py-1 rounded border transition-colors disabled:opacity-50 ${
-                        u.is_active
-                          ? 'border-red-200 text-red-500 hover:bg-red-50'
-                          : 'border-green-200 text-green-600 hover:bg-green-50'
-                      }`}
-                    >
-                      {busy[u.id] ? '…' : u.is_active ? 'Deactivate' : 'Activate'}
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => toggle(u.id)}
+                        disabled={busy[u.id]}
+                        className={`text-xs px-3 py-1 rounded border transition-colors disabled:opacity-50 ${
+                          u.is_active
+                            ? 'border-red-200 text-red-500 hover:bg-red-50'
+                            : 'border-green-200 text-green-600 hover:bg-green-50'
+                        }`}
+                      >
+                        {busy[u.id] ? '…' : u.is_active ? 'Deactivate' : 'Activate'}
+                      </button>
+
+                      {!u.is_active && (
+                        <button
+                          onClick={() => destroy(u.id)}
+                          disabled={busy[u.id]}
+                          className="text-xs px-3 py-1 rounded border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
                   )}
                 </td>
               </tr>
