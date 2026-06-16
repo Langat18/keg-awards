@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext';
 import { useCycle } from '../../hooks/useCycle';
@@ -7,29 +6,31 @@ import Card from '../../components/Card';
 import Badge from '../../components/Badge';
 
 const PHASE_INFO = {
-  nominating: { badge: 'blue',    label: 'Nominations Open',  tip: 'Submit your nominations before this phase closes.'  },
-  voting:     { badge: 'lime',    label: 'Voting Open',       tip: 'Cast your votes — one vote per category.'           },
-  results:    { badge: 'green',   label: 'Results Published', tip: 'Winners have been announced. View the results tab.' },
-  closed:     { badge: 'default', label: 'No Active Cycle',   tip: 'There is no active awards cycle at the moment.'     },
+  nominating: { badge: 'blue',    label: 'Nominations Open', tip: 'Submit your nominations before this phase closes.' },
+  voting:     { badge: 'lime',    label: 'Voting Open',      tip: 'Cast your votes — one vote per category.'          },
+  closed:     { badge: 'default', label: 'No Active Cycle',  tip: 'There is no active awards cycle at the moment.'    },
 };
 
 const PHASE_STEPS = ['closed', 'nominating', 'voting', 'results'];
 
-const ACTION_CARDS = [
-  { to: '/staff/nominate', icon: '✍️', label: 'Nominate', desc: 'Nominate yourself or a colleague', phase: 'nominating' },
-  { to: '/staff/vote',     icon: '🗳️', label: 'Vote',      desc: 'Cast your vote for each category', phase: 'voting'    },
-  { to: '/staff/results',  icon: '🏅', label: 'Results',  desc: 'See who took home the awards',      phase: 'results'   },
-];
-
 export default function StaffHome() {
-  const { user }           = useAuth();
-  const { cycle, loading } = useCycle();
+  const { user, canViewResults } = useAuth();
+  const { cycle, loading }       = useCycle(); 
 
   if (loading) return <PageSkeleton />;
 
   const phase   = cycle?.phase || 'closed';
-  const info    = PHASE_INFO[phase];
+  const info    = PHASE_INFO[phase] ?? PHASE_INFO['closed'];
   const stepIdx = PHASE_STEPS.indexOf(phase);
+
+  // Action cards — results card only shown to privileged users
+  const ACTION_CARDS = [
+    { to: '/staff/nominate', icon: '✍️', label: 'Nominate', desc: 'Nominate yourself or a colleague', phase: 'nominating' },
+    { to: '/staff/vote',     icon: '🗳️', label: 'Vote',     desc: 'Cast your vote for each category', phase: 'voting'     },
+    ...(canViewResults
+      ? [{ to: '/staff/results', icon: '🏅', label: 'Results', desc: 'See who took home the awards', phase: 'results' }]
+      : []),
+  ];
 
   return (
     <div>
@@ -55,14 +56,15 @@ export default function StaffHome() {
           <Badge variant={info.badge}>{info.label}</Badge>
         </div>
 
+        {/* Only render stepper when there is an active nominating/voting cycle */}
         {cycle && (
           <div className="mb-4">
             <div className="flex items-center">
               {PHASE_STEPS.map((s, i) => (
                 <div key={s} className="flex items-center flex-1 last:flex-none">
                   <div className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                    i < stepIdx  ? 'bg-[#7F622C] border-[#7F622C] text-white' :
-                    i === stepIdx ? 'bg-[#CBD300] border-[#CBD300]'            :
+                    i < stepIdx   ? 'bg-[#7F622C] border-[#7F622C] text-white' :
+                    i === stepIdx ? 'bg-[#CBD300] border-[#CBD300]'             :
                                     'bg-white border-gray-300'
                   }`}>
                     {i < stepIdx && <span className="text-[9px] leading-none">✓</span>}
@@ -108,7 +110,6 @@ export default function StaffHome() {
         })}
       </div>
 
-      {/* Categories */}
       {cycle?.categories?.length > 0 && (
         <div>
           <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">

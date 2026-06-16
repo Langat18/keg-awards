@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState } from 'react';
 import api from '../api/axios';
 
@@ -23,9 +22,10 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('user');
     setUser(null);
   }
+  const canViewResults = Boolean(user?.is_admin || user?.can_view_results);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, canViewResults }}>
       {children}
     </AuthContext.Provider>
   );
