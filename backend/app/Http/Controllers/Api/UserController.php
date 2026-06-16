@@ -8,50 +8,48 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function index(Request $request)
+    // Staff: list all users
+    public function index()
     {
-        return response()->json(
-            User::select('id', 'name', 'department')
-                ->where('is_active', true)
-                ->where('id', '!=', $request->user()->id)
-                ->orderBy('name')
-                ->get()
-        );
+        return User::select('id', 'name', 'department')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
     }
 
+    // Admin: full user list
     public function adminIndex()
     {
-        return response()->json(
-            User::select('id', 'name', 'email', 'department', 'role', 'is_active', 'created_at')
-                ->orderBy('name')
-                ->get()
-        );
+        return User::select('id', 'name', 'email', 'department', 'is_admin', 'is_active', 'can_view_results')
+            ->orderBy('name')
+            ->get();
     }
 
+    // Admin: toggle active status
     public function toggleActive(User $user)
     {
-        if ($user->role === 'admin') {
-            return response()->json(['message' => 'Admin accounts cannot be deactivated.'], 422);
-        }
-
         $user->update(['is_active' => ! $user->is_active]);
 
-        return response()->json([
-            'message'   => $user->is_active ? 'Account activated.' : 'Account deactivated.',
-            'is_active' => $user->is_active,
-        ]);
+        return response()->json($user->only('id', 'name', 'is_active', 'can_view_results'));
+    }
+
+    // Admin: toggle results-viewing access
+    public function toggleResultsAccess(User $user)
+    {
+        // Admins always have access — no need to toggle
+        if ($user->is_admin) {
+            return response()->json([
+                'message' => 'Admins always have results access. This flag only applies to staff.',
+            ], 422);
+        }
+
+        $user->update(['can_view_results' => ! $user->can_view_results]);
+
+        return response()->json($user->only('id', 'name', 'can_view_results'));
     }
 
     public function destroy(User $user)
     {
-        if ($user->role === 'admin') {
-            return response()->json(['message' => 'Admin accounts cannot be deleted.'], 422);
-        }
-
-        if ($user->is_active) {
-            return response()->json(['message' => 'Deactivate the account before deleting.'], 422);
-        }
-
         $user->delete();
 
         return response()->json(['message' => 'User deleted.']);

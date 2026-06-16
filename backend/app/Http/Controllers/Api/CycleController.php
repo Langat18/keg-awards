@@ -15,16 +15,35 @@ class CycleController extends Controller
         return Cycle::with('categories')->latest()->get();
     }
 
-    // Staff & Admin: current active cycle
+    // separate /cycles/active-with-results endpoint if they have access.
     public function active()
     {
         $cycle = Cycle::with('categories')
-            ->whereIn('phase', ['nominating', 'voting', 'results'])
+            ->whereIn('phase', ['nominating', 'voting'])
             ->latest()
             ->first();
 
         if (! $cycle) {
             return response()->json(['message' => 'No active cycle at the moment.'], 404);
+        }
+
+        return response()->json($cycle);
+    }
+
+    // Gated by canViewResults() — returns 403 for regular staff.
+    public function activeWithResults(Request $request)
+    {
+        if (! $request->user()->canViewResults()) {
+            return response()->json(['message' => 'You do not have permission to view results.'], 403);
+        }
+
+        $cycle = Cycle::with('categories')
+            ->where('phase', 'results')
+            ->latest()
+            ->first();
+
+        if (! $cycle) {
+            return response()->json(['message' => 'No results published yet.'], 404);
         }
 
         return response()->json($cycle);
