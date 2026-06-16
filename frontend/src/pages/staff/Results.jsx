@@ -1,33 +1,65 @@
-
 import { useEffect, useState } from 'react';
-import { useCycle } from '../../hooks/useCycle';
+import { useAuth } from '../../store/AuthContext';
 import { PageSkeleton } from '../../components/Skeleton';
 import PhaseBanner from '../../components/PhaseBanner';
 import Card from '../../components/Card';
 import api from '../../api/axios';
 
 export default function Results() {
-  const { cycle, loading }   = useCycle();
-  const [results, setResults] = useState([]);
-  const [fetching, setFetching] = useState(false);
+  const { canViewResults }        = useAuth();
+  const [cycle, setCycle]         = useState(null);
+  const [results, setResults]     = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(null);
 
   useEffect(() => {
-    if (!cycle || cycle.phase !== 'results') return;
-    setFetching(true);
-    api.get(`/cycles/${cycle.id}/results`)
+    if (!canViewResults) {
+      setLoading(false);
+      return;
+    }
+    api.get('/cycles/active-with-results')
+      .then(r => {
+        setCycle(r.data);
+        return api.get(`/cycles/${r.data.id}/results`);
+      })
       .then(r => setResults(r.data))
-      .finally(() => setFetching(false));
-  }, [cycle?.id, cycle?.phase]);
+      .catch(err => {
+        if (err.response?.status === 404) {
+          setError('No results have been published yet.');
+        } else if (err.response?.status === 403) {
+          setError('You do not have permission to view results.');
+        } else {
+          setError('Failed to load results.');
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [canViewResults]);
 
-  if (loading || fetching) return <PageSkeleton />;
-  if (!cycle || cycle.phase !== 'results') {
-    return <PhaseBanner phase={cycle?.phase} expected="results" label="Results" />;
+  if (!canViewResults) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-4xl mb-3">🔒</p>
+        <p className="font-semibold text-gray-700">Results are not available yet.</p>
+        <p className="text-sm text-gray-400 mt-1">Check back when results are published.</p>
+      </div>
+    );
+  }
+
+  if (loading) return <PageSkeleton />;
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-4xl mb-3">🏅</p>
+        <p className="font-semibold text-gray-700">{error}</p>
+      </div>
+    );
   }
 
   return (
     <div>
       <h2 className="text-2xl font-bold text-[#7F622C] mb-1">🏅 Results</h2>
-      <p className="text-gray-500 text-sm mb-6">{cycle.title}</p>
+      <p className="text-gray-500 text-sm mb-6">{cycle?.title}</p>
 
       {results.length === 0 ? (
         <p className="text-gray-400 text-sm">No votes were cast in this cycle.</p>
