@@ -104,6 +104,30 @@ class CycleController extends Controller
         return response()->json($cycle->load('categories'));
     }
 
+    // Admin: close nominations (nominating → closed)
+    public function closeNominations(Request $request, Cycle $cycle)
+    {
+        if ($cycle->phase !== 'nominating') {
+            return response()->json(['message' => 'Nominations are not currently open.'], 422);
+        }
+
+        $cycle->update([
+            'phase'               => 'closed',
+            'nominations_open_at' => null,
+        ]);
+
+        AuditLog::create([
+            'user_id'     => $request->user()->id,
+            'action'      => 'nominations_closed',
+            'target_type' => 'cycle',
+            'target_id'   => $cycle->id,
+            'notes'       => "Nominations closed manually for: {$cycle->title}",
+            'created_at'  => now(),
+        ]);
+
+        return response()->json($cycle->load('categories'));
+    }
+
     // Admin: delete a closed cycle
     public function destroy(Cycle $cycle)
     {

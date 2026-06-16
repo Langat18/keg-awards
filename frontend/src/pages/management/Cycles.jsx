@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useToast } from '../../components/Toast';
 import api from '../../api/axios';
@@ -8,6 +7,19 @@ const PHASE_COLORS = {
   nominating: 'bg-blue-100 text-blue-700',
   voting:     'bg-amber-100 text-amber-700',
   results:    'bg-green-100 text-green-700',
+};
+
+const PHASE_LABELS = {
+  closed:     'Closed',
+  nominating: 'Nominations Open',
+  voting:     'Voting Open',
+  results:    'Results Published',
+};
+
+const ADVANCE_CONFIRM = {
+  closed:     'Open nominations for this cycle? Staff will be able to submit nominations.',
+  nominating: 'Move to voting? Nominations will be locked — no new submissions will be accepted.',
+  voting:     'Publish results? Voting will end and winners will be visible to all staff.',
 };
 
 export default function ManageCycles() {
@@ -74,6 +86,34 @@ export default function ManageCycles() {
     }
   }
 
+  async function advancePhase(cycle) {
+    if (!confirm(ADVANCE_CONFIRM[cycle.phase])) return;
+    setBusy(true);
+    try {
+      await api.post(`/cycles/${cycle.id}/phase`);
+      toast.success(PHASE_LABELS[{ closed: 'nominating', nominating: 'voting', voting: 'results' }[cycle.phase]] + ' — phase updated.');
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to advance phase.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function closeNominations(cycle) {
+    if (!confirm('Close nominations? Staff will no longer be able to submit nominations.')) return;
+    setBusy(true);
+    try {
+      await api.post(`/cycles/${cycle.id}/close-nominations`);
+      toast.success('Nominations closed.');
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to close nominations.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const inp = 'w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#7F622C] focus:border-[#7F622C] bg-white transition-colors';
 
   return (
@@ -85,6 +125,7 @@ export default function ManageCycles() {
 
       <div className="grid lg:grid-cols-3 gap-6">
 
+        {/* ── New Cycle form ── */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl border border-gray-200 p-5 sticky top-20">
             <h3 className="font-bold text-gray-800 mb-4 pb-3 border-b border-gray-100">New Cycle</h3>
@@ -100,7 +141,9 @@ export default function ManageCycles() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Description <span className="text-gray-400 font-normal normal-case">(optional)</span></label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
+                  Description <span className="text-gray-400 font-normal normal-case">(optional)</span>
+                </label>
                 <input
                   placeholder="Brief description of this cycle"
                   value={form.description}
@@ -119,6 +162,7 @@ export default function ManageCycles() {
           </div>
         </div>
 
+        {/* ── Cycle list ── */}
         <div className="lg:col-span-2 space-y-4">
           {cycles.length === 0 && (
             <div className="bg-white rounded-xl border border-dashed border-gray-200 p-10 text-center">
@@ -134,8 +178,8 @@ export default function ManageCycles() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-bold text-gray-900 text-base">{c.title}</h4>
-                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize ${PHASE_COLORS[c.phase]}`}>
-                      {c.phase}
+                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${PHASE_COLORS[c.phase]}`}>
+                      {PHASE_LABELS[c.phase]}
                     </span>
                   </div>
                   {c.description && (
@@ -152,6 +196,93 @@ export default function ManageCycles() {
                 )}
               </div>
 
+              {/* Phase controls */}
+              <div className="px-5 pt-4 pb-2 border-b border-gray-100 bg-gray-50">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Cycle Phase</p>
+
+                {/* Stepper */}
+                <div className="flex items-center gap-0 mb-3">
+                  {['closed', 'nominating', 'voting', 'results'].map((ph, i, arr) => {
+                    const phaseOrder = { closed: 0, nominating: 1, voting: 2, results: 3 };
+                    const current = phaseOrder[c.phase];
+                    const done    = phaseOrder[ph] < current;
+                    const active  = ph === c.phase;
+                    return (
+                      <div key={ph} className="flex items-center flex-1 last:flex-none">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors
+                          ${active  ? 'bg-[#7F622C] text-white ring-2 ring-[#7F622C] ring-offset-1'
+                          : done   ? 'bg-green-500 text-white'
+                          :          'bg-gray-200 text-gray-400'}`}
+                        >
+                          {done ? '✓' : i + 1}
+                        </div>
+                        <span className={`text-[10px] ml-1 font-medium hidden sm:inline
+                          ${active ? 'text-[#7F622C]' : done ? 'text-green-600' : 'text-gray-400'}`}
+                        >
+                          {['Closed', 'Nominating', 'Voting', 'Results'][i]}
+                        </span>
+                        {i < arr.length - 1 && (
+                          <div className={`flex-1 h-px mx-2 ${phaseOrder[ph] < current ? 'bg-green-400' : 'bg-gray-200'}`} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex flex-wrap gap-2 pb-3">
+                  {c.phase === 'closed' && (
+                    <>
+                      <button
+                        onClick={() => advancePhase(c)}
+                        disabled={busy || (c.categories?.length === 0)}
+                        title={c.categories?.length === 0 ? 'Add at least one category before opening nominations' : ''}
+                        className="text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        ▶ Open Nominations
+                      </button>
+                      {c.categories?.length === 0 && (
+                        <span className="text-xs text-red-400 self-center">Add a category first</span>
+                      )}
+                    </>
+                  )}
+
+                  {c.phase === 'nominating' && (
+                    <>
+                      <button
+                        onClick={() => closeNominations(c)}
+                        disabled={busy}
+                        className="text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 transition-colors"
+                      >
+                        ✕ Close Nominations
+                      </button>
+                      <button
+                        onClick={() => advancePhase(c)}
+                        disabled={busy}
+                        className="text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-40 transition-colors"
+                      >
+                        ▶ Move to Voting
+                      </button>
+                    </>
+                  )}
+
+                  {c.phase === 'voting' && (
+                    <button
+                      onClick={() => advancePhase(c)}
+                      disabled={busy}
+                      className="text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 transition-colors"
+                    >
+                      ✓ Publish Results
+                    </button>
+                  )}
+
+                  {c.phase === 'results' && (
+                    <span className="text-xs font-semibold text-green-600 self-center">✓ Cycle complete</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Categories */}
               <div className="p-5">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                   Categories ({c.categories?.length || 0})
