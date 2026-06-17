@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\NominationController;
 use App\Http\Controllers\Api\VoteController;
 use App\Http\Controllers\Api\ResultController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ProfileController;
 
 // Public
 Route::post('/auth/login',    [AuthController::class, 'login']);

@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    // Staff: list all users
+    // Staff: list all active users (for nomination dropdowns)
     public function index()
     {
         return User::select('id', 'name', 'department')
@@ -20,7 +20,7 @@ class UserController extends Controller
     // Admin: full user list
     public function adminIndex()
     {
-        return User::select('id', 'name', 'email', 'department', 'is_admin', 'is_active', 'can_view_results')
+        return User::select('id', 'name', 'email', 'department', 'role', 'is_active', 'can_view_results')
             ->orderBy('name')
             ->get();
     }
@@ -30,14 +30,13 @@ class UserController extends Controller
     {
         $user->update(['is_active' => ! $user->is_active]);
 
-        return response()->json($user->only('id', 'name', 'is_active', 'can_view_results'));
+        return response()->json($user->only('id', 'name', 'is_active', 'can_view_results', 'role'));
     }
 
-    // Admin: toggle results-viewing access
+    // Admin: toggle results-viewing access for non-admin staff
     public function toggleResultsAccess(User $user)
     {
-        // Admins always have access — no need to toggle
-        if ($user->is_admin) {
+        if ($user->isAdmin()) {
             return response()->json([
                 'message' => 'Admins always have results access. This flag only applies to staff.',
             ], 422);
@@ -45,7 +44,7 @@ class UserController extends Controller
 
         $user->update(['can_view_results' => ! $user->can_view_results]);
 
-        return response()->json($user->only('id', 'name', 'can_view_results'));
+        return response()->json($user->only('id', 'name', 'can_view_results', 'role'));
     }
 
     public function destroy(User $user)

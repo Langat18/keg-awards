@@ -22,10 +22,12 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('user');
     setUser(null);
   }
-  const canViewResults = Boolean(user?.is_admin || user?.can_view_results);
+
+  const isAdmin        = user?.role === 'admin';
+  const canViewResults = isAdmin || Boolean(user?.can_view_results);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, canViewResults }}>
+    <AuthContext.Provider value={{ user, login, logout, isAdmin, canViewResults }}>
       {children}
     </AuthContext.Provider>
   );

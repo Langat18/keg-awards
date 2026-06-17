@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext';
@@ -10,11 +9,7 @@ const FEATURES = [
   },
   {
     title: 'Transparent Voting',
-    desc:  'One vote per category. All nominees visible to all staff — no hidden ballots.',
-  },
-  {
-    title: 'Instant Results',
-    desc:  'Winners are revealed the moment voting closes, with full vote counts published.',
+    desc:  'One vote per category. All nominees visible to all staff.',
   },
 ];
 
@@ -22,7 +17,6 @@ const STEPS = [
   { n: '1', label: 'Admin opens nominations' },
   { n: '2', label: 'Staff nominate colleagues or self' },
   { n: '3', label: 'Voting opens — one vote per category' },
-  { n: '4', label: 'Results published to all staff' },
 ];
 
 export default function Landing() {
@@ -35,7 +29,6 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-
 
       <header className="bg-[#7F622C] sticky top-0 z-40 shadow-sm">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -60,7 +53,7 @@ export default function Landing() {
             Staff Rewards &amp;<br />Recognition System
           </h1>
           <p className="text-gray-500 text-lg leading-relaxed mb-10 max-w-xl mx-auto">
-            A formal, staff-driven platform for nominating, voting, and celebrating outstanding colleagues across KSG campuses.
+            A formal, staff-driven platform for nominating, voting, and celebrating outstanding colleagues at KSG Mombasa Campus.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/register" className="bg-[#7F622C] text-white font-bold px-7 py-3.5 rounded-xl hover:bg-[#5c4620] transition-colors text-sm">
@@ -80,7 +73,7 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto">
           <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2 text-center">Process</p>
           <h2 className="text-2xl font-black text-gray-900 text-center mb-10">How the awards cycle works</h2>
-          <div className="grid sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {STEPS.map((s, i) => (
               <div key={s.n} className="relative">
                 <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm h-full">
@@ -102,9 +95,9 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto">
           <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2 text-center">Why it matters</p>
           <h2 className="text-2xl font-black text-gray-900 text-center mb-10">Built on fairness and transparency</h2>
-          <div className="grid sm:grid-cols-3 gap-6">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
             {FEATURES.map(f => (
-              <div key={f.title} className="border border-gray-100 rounded-2xl p-6 hover:border-[#CBD300] transition-colors">
+              <div key={f.title} className="border border-gray-100 rounded-2xl p-6 hover:border-[#CBD300] transition-colors flex-1 max-w-sm">
                 <div className="w-8 h-1 bg-[#CBD300] rounded-full mb-4" />
                 <h3 className="font-bold text-gray-800 mb-2">{f.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>

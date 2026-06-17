@@ -15,9 +15,9 @@ class User extends Authenticatable
         'email',
         'password',
         'department',
-        'is_admin',
+        'role',
         'is_active',
-        'can_view_results', 
+        'can_view_results',
     ];
 
     protected $hidden = [
@@ -29,15 +29,19 @@ class User extends Authenticatable
     {
         return [
             'password'         => 'hashed',
-            'is_admin'         => 'boolean',
             'is_active'        => 'boolean',
-            'can_view_results' => 'boolean',  // NEW
+            'can_view_results' => 'boolean',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 
     /** Admins and explicitly granted users can view results. */
     public function canViewResults(): bool
     {
-        return $this->is_admin || $this->can_view_results;
+        return $this->isAdmin() || $this->can_view_results;
     }
 }
