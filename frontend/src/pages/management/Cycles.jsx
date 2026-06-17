@@ -28,6 +28,8 @@ export default function ManageCycles() {
   const [busy, setBusy]       = useState(false);
   const [form, setForm]       = useState({ title: '', description: '' });
   const [catForm, setCatForm] = useState({ name: '', description: '', criteria: '', sort_order: '' });
+  const [forceDeleteTarget, setForceDeleteTarget] = useState(null);
+  const [forceDeleteInput, setForceDeleteInput]   = useState('');
 
   const load = () => api.get('/cycles').then(r => setCycles(r.data));
   useEffect(() => { load(); }, []);
@@ -106,6 +108,39 @@ export default function ManageCycles() {
     } finally { setBusy(false); }
   }
 
+  async function cloneCycle(cycle) {
+    if (!confirm(`Clone "${cycle.title}"? A new closed cycle will be created with the same categories.`)) return;
+    setBusy(true);
+    try {
+      const { data } = await api.post(`/cycles/${cycle.id}/clone`);
+      setExpanded(prev => ({ ...prev, [data.id]: true }));
+      toast.success(`Cloned as "${data.title}".`);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to clone cycle.');
+    } finally { setBusy(false); }
+  }
+
+  function openForceDelete(cycle) {
+    setForceDeleteTarget(cycle);
+    setForceDeleteInput('');
+  }
+
+  async function confirmForceDelete() {
+    if (!forceDeleteTarget || forceDeleteInput !== forceDeleteTarget.title) return;
+    setBusy(true);
+    try {
+      await api.post(`/cycles/${forceDeleteTarget.id}/force-delete`, {
+        confirm_title: forceDeleteInput,
+      });
+      toast.success('Cycle permanently deleted.');
+      setForceDeleteTarget(null);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete cycle.');
+    } finally { setBusy(false); }
+  }
+
   return (
     <div className="max-w-5xl mx-auto">
 
@@ -159,7 +194,6 @@ export default function ManageCycles() {
               </button>
             </form>
 
-            {/* Quick guide */}
             <div className="px-6 pb-6">
               <div className="bg-[#7F622C]/5 rounded-xl p-4 border border-[#7F622C]/10">
                 <p className="text-xs font-bold text-[#7F622C] mb-2">How cycles work</p>
@@ -184,7 +218,6 @@ export default function ManageCycles() {
           </div>
         </div>
 
-
         <div className="space-y-4">
           {cycles.length === 0 && (
             <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-14 text-center">
@@ -204,7 +237,7 @@ export default function ManageCycles() {
             return (
               <div key={c.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
-
+                {/* ── Cycle header ── */}
                 <div
                   className="flex items-center justify-between px-6 py-4 cursor-pointer select-none hover:bg-gray-50/60 transition-colors"
                   onClick={() => toggleExpand(c.id)}
@@ -224,6 +257,13 @@ export default function ManageCycles() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0 ml-4">
+                    <button
+                      onClick={ev => { ev.stopPropagation(); cloneCycle(c); }}
+                      title="Create a new cycle with the same categories"
+                      className="text-xs text-gray-400 hover:text-[#7F622C] transition-colors px-1"
+                    >
+                      Clone
+                    </button>
                     {c.phase === 'closed' && (
                       <button
                         onClick={ev => { ev.stopPropagation(); deleteCycle(c.id); }}
@@ -232,13 +272,21 @@ export default function ManageCycles() {
                         Delete
                       </button>
                     )}
+                    {c.phase !== 'closed' && (
+                      <button
+                        onClick={ev => { ev.stopPropagation(); openForceDelete(c); }}
+                        title="Permanently delete this cycle regardless of phase"
+                        className="text-xs text-gray-300 hover:text-red-400 transition-colors px-1"
+                      >
+                        Force Delete
+                      </button>
+                    )}
                     <span className="text-gray-300 text-sm">{isExpanded ? '▲' : '▼'}</span>
                   </div>
                 </div>
 
                 {isExpanded && (
                   <>
-      
                     <div className="px-6 py-4 bg-gray-50/60 border-t border-gray-100">
                       <div className="flex items-center mb-4">
                         {STEPS.map((ph, i) => {
@@ -271,7 +319,7 @@ export default function ManageCycles() {
                         })}
                       </div>
 
-
+                      {/* Action buttons */}
                       <div className="flex flex-wrap gap-2">
                         {c.phase === 'closed' && (
                           <>
@@ -328,6 +376,7 @@ export default function ManageCycles() {
                       </div>
                     </div>
 
+                    {/* ── Categories ── */}
                     <div className="px-6 py-5 border-t border-gray-100">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
@@ -449,6 +498,44 @@ export default function ManageCycles() {
           })}
         </div>
       </div>
+
+      {forceDeleteTarget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h3 className="font-bold text-gray-900 text-base mb-1">Force delete cycle</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              This permanently deletes <span className="font-semibold text-gray-700">"{forceDeleteTarget.title}"</span>{' '}
+              along with all its nominations and votes, even though it's currently in the{' '}
+              <span className="font-semibold">{PHASE_META[forceDeleteTarget.phase].label}</span> phase. This cannot be undone.
+            </p>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+              Type the cycle title to confirm
+            </label>
+            <input
+              autoFocus
+              value={forceDeleteInput}
+              onChange={e => setForceDeleteInput(e.target.value)}
+              placeholder={forceDeleteTarget.title}
+              className={inp + ' mb-4'}
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setForceDeleteTarget(null)}
+                className="text-xs text-gray-500 hover:text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmForceDelete}
+                disabled={busy || forceDeleteInput !== forceDeleteTarget.title}
+                className="text-xs font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 rounded-lg transition-colors"
+              >
+                {busy ? 'Deleting…' : 'Permanently Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

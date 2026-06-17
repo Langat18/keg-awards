@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { PageSkeleton } from '../../components/Skeleton';
-import Card from '../../components/Card';
 import api from '../../api/axios';
 
 export default function AdminResults() {
-  const [cycles, setCycles]     = useState([]);   // all results-phase cycles
-  const [selected, setSelected] = useState(null); // active cycle id
+  const [cycles, setCycles]     = useState([]);
+  const [selected, setSelected] = useState(null);
   const [results, setResults]   = useState([]);
   const [loading, setLoading]   = useState(true);
   const [fetching, setFetching] = useState(false);
@@ -31,13 +30,12 @@ export default function AdminResults() {
 
   if (loading) return <PageSkeleton />;
 
-  const cycle = cycles.find(c => c.id === selected);
+  const cycle      = cycles.find(c => c.id === selected);
   const totalVotes = results.reduce((sum, cat) => sum + (cat.total_votes || 0), 0);
 
   return (
     <div className="max-w-5xl mx-auto">
 
-      {/* Header */}
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold text-[#7F622C] uppercase tracking-widest mb-1">Administration</p>
@@ -118,24 +116,23 @@ export default function AdminResults() {
                       </div>
                     </div>
 
-
-
+                    {/* Nominees */}
                     <div className="px-6 py-4 space-y-3">
                       {cat.nominees?.map((n, i) => (
                         <div
-                          key={n.nomination_id}
+                          key={n.nominee_id}
                           className={`flex items-center gap-4 rounded-xl p-4 border transition-colors ${
                             n.is_winner
                               ? 'bg-[#CBD300]/10 border-[#CBD300]/40'
                               : 'bg-gray-50/60 border-gray-100'
                           }`}
                         >
-         
+                          {/* Rank badge */}
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                             i === 0 ? 'bg-[#CBD300] text-[#3d2e00]'
                             : i === 1 ? 'bg-gray-200 text-gray-600'
                             : i === 2 ? 'bg-amber-100 text-amber-700'
-                            : 'bg-gray-100 text-gray-400'
+                            :           'bg-gray-100 text-gray-400'
                           }`}>
                             {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                           </div>

@@ -53,6 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::delete('/nominations/{nomination}',                     [NominationController::class, 'destroy']);
 
+        Route::post('/cycles/{cycle}/force-delete', [CycleController::class, 'forceDestroy']);
+        Route::post('/cycles/{cycle}/clone',        [CycleController::class, 'clone']);
+
         Route::get('/admin/users',                                     [UserController::class, 'adminIndex']);
         Route::patch('/admin/users/{user}/toggle',                     [UserController::class, 'toggleActive']);
         Route::patch('/admin/users/{user}/toggle-results',             [UserController::class, 'toggleResultsAccess']); // NEW

@@ -4,18 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Category;
 use App\Models\Cycle;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CycleController extends Controller
 {
-    // Admin: all cycles
     public function index()
     {
         return Cycle::with('categories')->latest()->get();
     }
 
-    // separate /cycles/active-with-results endpoint if they have access.
     public function active()
     {
         $cycle = Cycle::with('categories')
@@ -30,7 +30,6 @@ class CycleController extends Controller
         return response()->json($cycle);
     }
 
-    // Gated by canViewResults() — returns 403 for regular staff.
     public function activeWithResults(Request $request)
     {
         if (! $request->user()->canViewResults()) {
@@ -76,7 +75,6 @@ class CycleController extends Controller
         return response()->json($cycle->load('categories'), 201);
     }
 
-    // Admin: update title/description
     public function update(Request $request, Cycle $cycle)
     {
         $data = $request->validate([
@@ -89,7 +87,6 @@ class CycleController extends Controller
         return response()->json($cycle);
     }
 
-    // Admin: advance phase  closed → nominating → voting → results
     public function advancePhase(Request $request, Cycle $cycle)
     {
         $transitions = [
@@ -123,7 +120,6 @@ class CycleController extends Controller
         return response()->json($cycle->load('categories'));
     }
 
-    // Admin: close nominations (nominating → closed)
     public function closeNominations(Request $request, Cycle $cycle)
     {
         if ($cycle->phase !== 'nominating') {
@@ -147,7 +143,7 @@ class CycleController extends Controller
         return response()->json($cycle->load('categories'));
     }
 
-    // Admin: delete a closed cycle
+    // Admin: delete a closed cycle (normal path — used by the existing "Delete" button)
     public function destroy(Cycle $cycle)
     {
         if ($cycle->phase !== 'closed') {
@@ -157,5 +153,71 @@ class CycleController extends Controller
         $cycle->delete();
 
         return response()->json(['message' => 'Cycle deleted.']);
+    }
+
+    public function forceDestroy(Request $request, Cycle $cycle)
+    {
+        $data = $request->validate([
+            'confirm_title' => 'required|string',
+        ]);
+
+        if ($data['confirm_title'] !== $cycle->title) {
+            return response()->json(['message' => 'Confirmation text does not match the cycle title.'], 422);
+        }
+
+        AuditLog::create([
+            'user_id'     => $request->user()->id,
+            'action'      => 'cycle_force_deleted',
+            'target_type' => 'cycle',
+            'target_id'   => $cycle->id,
+            'notes'       => "Force-deleted cycle '{$cycle->title}' while in phase '{$cycle->phase}'",
+            'created_at'  => now(),
+        ]);
+
+
+        $cycle->delete();
+
+        return response()->json(['message' => 'Cycle permanently deleted.']);
+    }
+
+    public function clone(Request $request, Cycle $cycle)
+    {
+        $data = $request->validate([
+            'title' => 'nullable|string|max:200',
+        ]);
+
+        $newCycle = DB::transaction(function () use ($request, $cycle, $data) {
+            $newTitle = $data['title'] ?? "{$cycle->title} (Copy)";
+
+            $new = Cycle::create([
+                'title'       => $newTitle,
+                'description' => $cycle->description,
+                'phase'       => 'closed',
+                'created_by'  => $request->user()->id,
+            ]);
+
+            foreach ($cycle->categories as $category) {
+                Category::create([
+                    'cycle_id'    => $new->id,
+                    'name'        => $category->name,
+                    'description' => $category->description,
+                    'criteria'    => $category->criteria,
+                    'sort_order'  => $category->sort_order,
+                ]);
+            }
+
+            AuditLog::create([
+                'user_id'     => $request->user()->id,
+                'action'      => 'cycle_cloned',
+                'target_type' => 'cycle',
+                'target_id'   => $new->id,
+                'notes'       => "Cloned from cycle '{$cycle->title}' (#{$cycle->id})",
+                'created_at'  => now(),
+            ]);
+
+            return $new;
+        });
+
+        return response()->json($newCycle->load('categories'), 201);
     }
 }

@@ -19,18 +19,21 @@ class ResultController extends Controller
             ->join('categories',  'votes.category_id', '=', 'categories.id')
             ->where('votes.cycle_id', $cycle->id)
             ->select(
-                'categories.id as category_id',
+                'categories.id   as category_id',
                 'categories.name as category_name',
                 'categories.sort_order',
-                'nominations.id as nomination_id',
-                'users.id as nominee_id',
-                'users.name as nominee_name',
+                'users.id        as nominee_id',
+                'users.name      as nominee_name',
                 'users.department',
                 DB::raw('COUNT(votes.id) as vote_count')
             )
             ->groupBy(
-                'categories.id', 'categories.name', 'categories.sort_order',
-                'nominations.id', 'users.id', 'users.name', 'users.department'
+                'categories.id',
+                'categories.name',
+                'categories.sort_order',
+                'users.id',
+                'users.name',
+                'users.department'
             )
             ->orderBy('categories.sort_order')
             ->orderByDesc('vote_count')
@@ -38,15 +41,15 @@ class ResultController extends Controller
 
         $grouped = $rows->groupBy('category_id')->map(function ($nominees) {
             $total = $nominees->sum('vote_count');
-            $list  = $nominees->values()->map(function ($n, $idx) use ($total) {
+
+            $list = $nominees->values()->map(function ($n, $idx) use ($total) {
                 return [
-                    'nomination_id' => $n->nomination_id,
-                    'nominee_id'    => $n->nominee_id,
-                    'nominee_name'  => $n->nominee_name,
-                    'department'    => $n->department,
-                    'vote_count'    => (int) $n->vote_count,
-                    'percentage'    => $total > 0 ? round(($n->vote_count / $total) * 100, 1) : 0,
-                    'is_winner'     => $idx === 0,
+                    'nominee_id'   => $n->nominee_id,
+                    'nominee_name' => $n->nominee_name,
+                    'department'   => $n->department,
+                    'vote_count'   => (int) $n->vote_count,
+                    'percentage'   => $total > 0 ? round(($n->vote_count / $total) * 100, 1) : 0,
+                    'is_winner'    => $idx === 0,
                 ];
             });
 
