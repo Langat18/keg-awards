@@ -194,27 +194,7 @@ export default function ManageCycles() {
               </button>
             </form>
 
-            <div className="px-6 pb-6">
-              <div className="bg-[#7F622C]/5 rounded-xl p-4 border border-[#7F622C]/10">
-                <p className="text-xs font-bold text-[#7F622C] mb-2">How cycles work</p>
-                <ol className="space-y-1.5">
-                  {[
-                    'Create a cycle',
-                    'Add award categories',
-                    'Open nominations',
-                    'Start voting',
-                    'Publish results',
-                  ].map((step, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-[#7F622C]/70">
-                      <span className="w-4 h-4 rounded-full bg-[#7F622C]/15 text-[#7F622C] font-bold flex items-center justify-center shrink-0 text-[10px] mt-px">
-                        {i + 1}
-                      </span>
-                      {step}
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            </div>
+            
           </div>
         </div>
 
