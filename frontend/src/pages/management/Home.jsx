@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../components/Toast';
@@ -64,24 +63,30 @@ export default function ManagementHome() {
   const btn     = cycle ? PHASE_BTN[cycle.phase] : null;
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto">
 
-      <div className="mb-7">
-        <h2 className="text-2xl font-bold text-gray-900">Admin Overview</h2>
-        <p className="text-gray-500 text-sm mt-1">Manage the current awards cycle from this panel.</p>
+      <div className="mb-8">
+        <p className="text-xs font-semibold text-[#7F622C] uppercase tracking-widest mb-1">Administration</p>
+        <h2 className="text-2xl font-bold text-gray-900">Overview</h2>
+        <p className="text-gray-400 text-sm mt-1">Manage the current awards cycle from this panel.</p>
       </div>
 
       {!cycle ? (
-        <div className="bg-white rounded-xl border border-dashed border-gray-200 p-12 text-center">
-          <p className="text-gray-400 mb-4 text-sm">No cycles found. Create one to begin.</p>
-          <Link to="/management/cycles" className="inline-block bg-[#7F622C] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-[#5c4620] transition-colors">
+        <div className="bg-white rounded-2xl border border-dashed border-gray-200 py-20 text-center">
+          <p className="text-3xl mb-3">🏆</p>
+          <p className="text-sm font-semibold text-gray-400 mb-1">No cycles found</p>
+          <p className="text-xs text-gray-300 mb-6">Create a cycle to begin the awards process.</p>
+          <Link
+            to="/management/cycles"
+            className="inline-block bg-[#7F622C] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-[#5c4620] transition-colors"
+          >
             Go to Cycles
           </Link>
         </div>
       ) : (
         <>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+  
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Current Cycle</p>
@@ -97,35 +102,37 @@ export default function ManagementHome() {
                   {busy ? 'Please wait…' : btn.label}
                 </button>
               ) : (
-                <span className="shrink-0 text-sm font-semibold px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg">
+                <span className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                   Results Published
                 </span>
               )}
             </div>
 
-            <div className="flex items-center">
+   
+            <div className="flex items-center mb-2">
               {PHASE_STEPS.map((s, i) => (
                 <div key={s} className="flex items-center flex-1 last:flex-none">
-                  <div className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                    i < stepIdx  ? 'bg-[#7F622C] border-[#7F622C]' :
-                    i === stepIdx ? 'bg-[#CBD300] border-[#CBD300]' :
-                                    'bg-white border-gray-300'
+                  <div className={`w-7 h-7 rounded-full border-2 shrink-0 flex items-center justify-center text-[11px] font-bold transition-all ${
+                    i < stepIdx   ? 'bg-[#7F622C] border-[#7F622C] text-white'
+                    : i === stepIdx ? 'bg-[#CBD300] border-[#CBD300] text-[#3d2e00]'
+                    :                 'bg-white border-gray-200 text-gray-300'
                   }`}>
-                    {i < stepIdx && (
-                      <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 12 12">
-                        <path d="M10 3L5 8.5 2 5.5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                    {i < stepIdx ? (
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                       </svg>
-                    )}
+                    ) : i + 1}
                   </div>
                   {i < PHASE_STEPS.length - 1 && (
-                    <div className={`flex-1 h-px mx-2 ${i < stepIdx ? 'bg-[#7F622C]' : 'bg-gray-200'}`} />
+                    <div className={`flex-1 h-px mx-2 transition-colors ${i < stepIdx ? 'bg-[#7F622C]' : 'bg-gray-200'}`} />
                   )}
                 </div>
               ))}
             </div>
-            <div className="flex justify-between mt-2">
+            <div className="flex justify-between">
               {PHASE_STEPS.map((s, i) => (
-                <span key={s} className={`text-xs capitalize ${
+                <span key={s} className={`text-xs capitalize font-medium ${
                   i === stepIdx ? 'text-[#7F622C] font-bold' : 'text-gray-400'
                 }`}>
                   {s}
@@ -139,7 +146,7 @@ export default function ManagementHome() {
               <Link
                 key={c.to}
                 to={c.to}
-                className="bg-white border border-gray-200 rounded-xl p-5 hover:border-[#7F622C] hover:shadow-sm transition-all group"
+                className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-[#7F622C]/40 hover:shadow-sm transition-all group shadow-sm"
               >
                 <p className="font-bold text-gray-800 text-sm mb-1 group-hover:text-[#7F622C] transition-colors">{c.label}</p>
                 <p className="text-xs text-gray-400 leading-snug">{c.desc}</p>
