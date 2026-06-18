@@ -38,32 +38,35 @@ export default function Landing() {
         </div>
       </header>
 
-      <section className="bg-white py-20 px-6 border-b border-gray-100">
-        <div className="max-w-3xl mx-auto text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#7F622C] mb-5">
+      {/* Hero */}
+      <section
+        className="relative py-28 px-6 border-b border-gray-100 flex items-center justify-center"
+        style={{
+          backgroundImage: 'url(/homepage.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="relative z-10 max-w-3xl mx-auto text-center">
+          <h1 className="text-5xl sm:text-6xl font-black text-white leading-tight mb-3 drop-shadow-lg">
             Kenya School of Government
-          </p>
-          <h1 className="text-4xl sm:text-5xl font-black text-gray-900 leading-tight mb-6">
-            Staff Rewards &amp;<br />Recognition System
           </h1>
-          <p className="text-gray-500 text-lg leading-relaxed mb-10 max-w-xl mx-auto">
+          <p className="text-4xl sm:text-5xl font-black text-white leading-tight mb-8 drop-shadow-lg">
+            Staff Rewards &amp; Recognition System
+          </p>
+          <p className="text-white text-lg leading-relaxed mb-10 max-w-xl mx-auto font-medium">
             A formal, staff-driven platform for nominating, voting, and celebrating outstanding colleagues at KSG Mombasa Campus.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/register" className="bg-[#7F622C] text-white font-bold px-7 py-3.5 rounded-xl hover:bg-[#5c4620] transition-colors text-sm">
               Create Account
             </Link>
-            <Link to="/login" className="border border-gray-200 text-gray-700 font-semibold px-7 py-3.5 rounded-xl hover:border-[#7F622C] hover:text-[#7F622C] transition-colors text-sm">
+            <Link to="/login" className="border-2 border-white text-white font-bold px-7 py-3.5 rounded-xl hover:bg-white hover:text-gray-900 transition-colors text-sm">
               Sign In
             </Link>
           </div>
-          {/* <p className="text-xs text-gray-400 mt-5">
-            Access restricted to <strong className="text-gray-500">@ksg.ac.ke</strong> email addresses only
-          </p> */}
         </div>
       </section>
-
-      
 
       <section className="bg-white py-16 px-6 border-b border-gray-100">
         <div className="max-w-4xl mx-auto">
@@ -80,23 +83,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
-      {/*<section className="bg-[#7F622C] py-14 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-black text-white mb-3">
-            Ready to participate?
-          </h2>
-          <p className="text-white/60 text-sm mb-7 max-w-md mx-auto">
-            Register with your official KSG email address and take part in the current awards cycle.
-          </p>
-          <Link
-            to="/register"
-            className="inline-block bg-[#CBD300] text-[#3d2e00] font-bold px-8 py-3.5 rounded-xl hover:bg-[#b8be00] transition-colors text-sm"
-          >
-            Create Your Account
-          </Link>
-        </div>
-      </section>/* */}
 
       <footer className="bg-white border-t border-gray-100 py-6 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
