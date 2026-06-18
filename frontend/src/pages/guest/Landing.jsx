@@ -13,12 +13,6 @@ const FEATURES = [
   },
 ];
 
-const STEPS = [
-  { n: '1', label: 'Admin opens nominations' },
-  { n: '2', label: 'Staff nominate colleagues or self' },
-  { n: '3', label: 'Voting opens — one vote per category' },
-];
-
 export default function Landing() {
   const { user }  = useAuth();
   const navigate  = useNavigate();
@@ -63,33 +57,13 @@ export default function Landing() {
               Sign In
             </Link>
           </div>
-          <p className="text-xs text-gray-400 mt-5">
+          {/* <p className="text-xs text-gray-400 mt-5">
             Access restricted to <strong className="text-gray-500">@ksg.ac.ke</strong> email addresses only
-          </p>
+          </p> */}
         </div>
       </section>
 
-      <section className="bg-[#f7f6f3] py-16 px-6 border-b border-gray-100">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2 text-center">Process</p>
-          <h2 className="text-2xl font-black text-gray-900 text-center mb-10">How the awards cycle works</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {STEPS.map((s, i) => (
-              <div key={s.n} className="relative">
-                <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm h-full">
-                  <div className="w-8 h-8 rounded-full bg-[#7F622C] text-white text-xs font-black flex items-center justify-center mb-3">
-                    {s.n}
-                  </div>
-                  <p className="text-sm font-semibold text-gray-700 leading-snug">{s.label}</p>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div className="hidden sm:block absolute top-9 -right-2 text-gray-300 text-lg z-10">›</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
 
       <section className="bg-white py-16 px-6 border-b border-gray-100">
         <div className="max-w-4xl mx-auto">
