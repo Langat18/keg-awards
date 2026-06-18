@@ -81,7 +81,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="bg-[#7F622C] py-14 px-6">
+      {/*<section className="bg-[#7F622C] py-14 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-black text-white mb-3">
             Ready to participate?
@@ -96,7 +96,7 @@ export default function Landing() {
             Create Your Account
           </Link>
         </div>
-      </section>
+      </section>/* */}
 
       <footer className="bg-white border-t border-gray-100 py-6 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">

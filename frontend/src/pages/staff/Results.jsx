@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../store/AuthContext';
 import { PageSkeleton } from '../../components/Skeleton';
-import PhaseBanner from '../../components/PhaseBanner';
 import Card from '../../components/Card';
 import api from '../../api/axios';
 
@@ -13,10 +12,8 @@ export default function Results() {
   const [error, setError]         = useState(null);
 
   useEffect(() => {
-    if (!canViewResults) {
-      setLoading(false);
-      return;
-    }
+    if (!canViewResults) { setLoading(false); return; }
+
     api.get('/cycles/active-with-results')
       .then(r => {
         setCycle(r.data);
@@ -24,20 +21,16 @@ export default function Results() {
       })
       .then(r => setResults(r.data))
       .catch(err => {
-        if (err.response?.status === 404) {
-          setError('No results have been published yet.');
-        } else if (err.response?.status === 403) {
-          setError('You do not have permission to view results.');
-        } else {
-          setError('Failed to load results.');
-        }
+        if (err.response?.status === 404) setError('No results have been published yet.');
+        else if (err.response?.status === 403) setError('You do not have permission to view results.');
+        else setError('Failed to load results.');
       })
       .finally(() => setLoading(false));
   }, [canViewResults]);
 
   if (!canViewResults) {
     return (
-      <div className="text-center py-16">
+      <div className="max-w-2xl mx-auto text-center py-16">
         <p className="text-4xl mb-3">🔒</p>
         <p className="font-semibold text-gray-700">Results are not available yet.</p>
         <p className="text-sm text-gray-400 mt-1">Check back when results are published.</p>
@@ -49,7 +42,7 @@ export default function Results() {
 
   if (error) {
     return (
-      <div className="text-center py-16">
+      <div className="max-w-2xl mx-auto text-center py-16">
         <p className="text-4xl mb-3">🏅</p>
         <p className="font-semibold text-gray-700">{error}</p>
       </div>
@@ -57,7 +50,7 @@ export default function Results() {
   }
 
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       <h2 className="text-2xl font-bold text-[#7F622C] mb-1">🏅 Results</h2>
       <p className="text-gray-500 text-sm mb-6">{cycle?.title}</p>
 
@@ -74,9 +67,9 @@ export default function Results() {
                 </span>
               </div>
               <div className="space-y-3">
-                {cat.nominees.map(n => (
+                {cat.nominees.map((n, i) => (
                   <div
-                    key={n.nomination_id}
+                    key={n.nominee_id}
                     className={`rounded-xl p-4 border ${
                       n.is_winner
                         ? 'bg-[#CBD300]/10 border-[#CBD300]'
@@ -86,7 +79,7 @@ export default function Results() {
                     <div className="flex items-center justify-between mb-2">
                       <div>
                         <span className="font-semibold text-gray-800 text-sm">
-                          {n.is_winner && '🥇 '}{n.nominee_name}
+                          {i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}{n.nominee_name}
                         </span>
                         {n.department && (
                           <span className="text-xs text-gray-400 ml-2">{n.department}</span>

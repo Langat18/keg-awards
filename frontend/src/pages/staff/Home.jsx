@@ -15,7 +15,7 @@ const PHASE_STEPS = ['closed', 'nominating', 'voting', 'results'];
 
 export default function StaffHome() {
   const { user, canViewResults } = useAuth();
-  const { cycle, loading }       = useCycle(); 
+  const { cycle, loading }       = useCycle();
 
   if (loading) return <PageSkeleton />;
 
@@ -23,7 +23,6 @@ export default function StaffHome() {
   const info    = PHASE_INFO[phase] ?? PHASE_INFO['closed'];
   const stepIdx = PHASE_STEPS.indexOf(phase);
 
-  // Action cards — results card only shown to privileged users
   const ACTION_CARDS = [
     { to: '/staff/nominate', icon: '✍️', label: 'Nominate', desc: 'Nominate yourself or a colleague', phase: 'nominating' },
     { to: '/staff/vote',     icon: '🗳️', label: 'Vote',     desc: 'Cast your vote for each category', phase: 'voting'     },
@@ -33,7 +32,7 @@ export default function StaffHome() {
   ];
 
   return (
-    <div>
+    <div className="max-w-3xl mx-auto">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-[#7F622C]">
           Welcome, {user?.name?.split(' ')[0]} 👋
@@ -41,7 +40,6 @@ export default function StaffHome() {
         <p className="text-gray-500 text-sm mt-0.5">{user?.email}</p>
       </div>
 
-      {/* Cycle status */}
       <Card className="mb-6">
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
@@ -56,7 +54,6 @@ export default function StaffHome() {
           <Badge variant={info.badge}>{info.label}</Badge>
         </div>
 
-        {/* Only render stepper when there is an active nominating/voting cycle */}
         {cycle && (
           <div className="mb-4">
             <div className="flex items-center">
@@ -88,7 +85,6 @@ export default function StaffHome() {
         <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-4 py-2.5">{info.tip}</p>
       </Card>
 
-      {/* Action cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {ACTION_CARDS.map(c => {
           const active = phase === c.phase;

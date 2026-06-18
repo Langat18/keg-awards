@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 
 class VoteController extends Controller
 {
-    // Cast or update a vote (one per category — upsert enforces this)
     public function store(Request $request, Cycle $cycle)
     {
         if ($cycle->phase !== 'voting') {
@@ -21,7 +20,6 @@ class VoteController extends Controller
             'nomination_id' => 'required|integer|exists:nominations,id',
         ]);
 
-        // Verify the nomination belongs to this cycle and category
         $nomination = Nomination::where([
             'id'          => $data['nomination_id'],
             'cycle_id'    => $cycle->id,
@@ -32,10 +30,9 @@ class VoteController extends Controller
             return response()->json(['message' => 'Invalid nomination for this cycle/category.'], 422);
         }
 
-        // Cannot vote for yourself (nominee_id === voter_id)
-        if ($nomination->nominee_id === $request->user()->id) {
-            return response()->json(['message' => 'You cannot vote for yourself.'], 422);
-        }
+        // if ($nomination->nominee_id === $request->user()->id) {
+        //     return response()->json(['message' => 'You cannot vote for yourself.'], 422);
+        // }
 
         $vote = Vote::updateOrCreate(
             [
@@ -52,7 +49,6 @@ class VoteController extends Controller
         return response()->json(['message' => 'Vote recorded.', 'vote' => $vote], 201);
     }
 
-    // This user's votes for the active cycle
     public function myVotes(Request $request, Cycle $cycle)
     {
         return response()->json(

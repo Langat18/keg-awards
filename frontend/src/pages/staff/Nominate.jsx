@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../store/AuthContext';
 import { useCycle } from '../../hooks/useCycle';
@@ -10,14 +9,15 @@ import PhaseBanner from '../../components/PhaseBanner';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Badge from '../../components/Badge';
+import StaffPicker from '../../components/StaffPicker';
 import api from '../../api/axios';
 
 export default function Nominate() {
   const { user }                         = useAuth();
   const { cycle, loading: cycleLoading } = useCycle();
-  const { nominations, refetch }          = useNominations(cycle?.id);
-  const { users }                         = useUsers();
-  const { toast }                         = useToast();
+  const { nominations, refetch }         = useNominations(cycle?.id);
+  const { users }                        = useUsers();
+  const { toast }                        = useToast();
 
   const [self, setSelf]     = useState(false);
   const [busy, setBusy]     = useState(false);
@@ -68,14 +68,13 @@ export default function Nominate() {
   const sel         = `w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7F622C]`;
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       <h2 className="text-2xl font-bold text-[#7F622C] mb-1">Submit a Nomination</h2>
       <p className="text-gray-500 text-sm mb-6">{cycle.title}</p>
 
       <Card className="mb-8">
         <form onSubmit={submit} className="space-y-5">
 
-          {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Award Category</label>
             <select
@@ -96,7 +95,6 @@ export default function Nominate() {
             )}
           </div>
 
-          {/* Nominee */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-sm font-medium text-gray-700">Nominee</label>
@@ -112,29 +110,26 @@ export default function Nominate() {
             </div>
 
             {self ? (
-              <div className="border border-[#CBD300] bg-[#CBD300]/10 rounded-lg px-3 py-2.5 text-sm text-[#5c4620] font-medium">
-                {user.name} (You)
+              <div className="border border-[#CBD300] bg-[#CBD300]/10 rounded-lg px-3 py-2.5 text-sm text-[#5c4620] font-medium flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-[#7F622C]/20 text-[#7F622C] text-[10px] font-bold flex items-center justify-center shrink-0">
+                  {user.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+                </div>
+                {user.name} <span className="text-[#7F622C]/60 font-normal">(You)</span>
               </div>
             ) : (
               <>
-                <select
+                <StaffPicker
+                  users={users}
                   value={form.nominee_id}
-                  onChange={e => { setForm(f => ({ ...f, nominee_id: e.target.value })); setErrors(er => ({ ...er, nominee_id: '' })); }}
-                  className={`${sel} ${errors.nominee_id ? 'border-red-400' : 'border-gray-300'}`}
-                >
-                  <option value="">— Select staff member —</option>
-                  {users.map(u => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}{u.department ? ` — ${u.department}` : ''}
-                    </option>
-                  ))}
-                </select>
+                  onChange={id => { setForm(f => ({ ...f, nominee_id: id })); setErrors(er => ({ ...er, nominee_id: '' })); }}
+                  error={errors.nominee_id}
+                  placeholder="Search by name or department…"
+                />
                 {errors.nominee_id && <p className="text-xs text-red-500 mt-1">{errors.nominee_id}</p>}
               </>
             )}
           </div>
 
-          {/* Reason */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Reason <span className="text-gray-400 font-normal">(optional — max 600 chars)</span>
@@ -156,7 +151,6 @@ export default function Nominate() {
         </form>
       </Card>
 
-      {/* My nominations */}
       {myNoms.length > 0 && (
         <div>
           <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Your Submissions</h4>

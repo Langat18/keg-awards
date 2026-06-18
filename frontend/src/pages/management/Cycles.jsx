@@ -30,6 +30,8 @@ export default function ManageCycles() {
   const [catForm, setCatForm] = useState({ name: '', description: '', criteria: '', sort_order: '' });
   const [forceDeleteTarget, setForceDeleteTarget] = useState(null);
   const [forceDeleteInput, setForceDeleteInput]   = useState('');
+  const [cloneTarget, setCloneTarget] = useState(null);
+  const [cloneTitleInput, setCloneTitleInput] = useState('');
 
   const load = () => api.get('/cycles').then(r => setCycles(r.data));
   useEffect(() => { load(); }, []);
@@ -108,13 +110,21 @@ export default function ManageCycles() {
     } finally { setBusy(false); }
   }
 
-  async function cloneCycle(cycle) {
-    if (!confirm(`Clone "${cycle.title}"? A new closed cycle will be created with the same categories.`)) return;
+  function openClone(cycle) {
+    setCloneTarget(cycle);
+    setCloneTitleInput(`${cycle.title} (Copy)`);
+  }
+
+  async function confirmClone() {
+    if (!cloneTarget || !cloneTitleInput.trim()) return;
     setBusy(true);
     try {
-      const { data } = await api.post(`/cycles/${cycle.id}/clone`);
+      const { data } = await api.post(`/cycles/${cloneTarget.id}/clone`, {
+        title: cloneTitleInput.trim(),
+      });
       setExpanded(prev => ({ ...prev, [data.id]: true }));
       toast.success(`Cloned as "${data.title}".`);
+      setCloneTarget(null);
       load();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to clone cycle.');
@@ -194,7 +204,27 @@ export default function ManageCycles() {
               </button>
             </form>
 
-            
+            {/*<div className="px-6 pb-6">
+              <div className="bg-[#7F622C]/5 rounded-xl p-4 border border-[#7F622C]/10">
+                <p className="text-xs font-bold text-[#7F622C] mb-2">How cycles work</p>
+                <ol className="space-y-1.5">
+                  {[
+                    'Create a cycle',
+                    'Add award categories',
+                    'Open nominations',
+                    'Start voting',
+                    'Publish results',
+                  ].map((step, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-[#7F622C]/70">
+                      <span className="w-4 h-4 rounded-full bg-[#7F622C]/15 text-[#7F622C] font-bold flex items-center justify-center shrink-0 text-[10px] mt-px">
+                        {i + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div> //*/}
           </div>
         </div>
 
@@ -238,7 +268,7 @@ export default function ManageCycles() {
                   </div>
                   <div className="flex items-center gap-3 shrink-0 ml-4">
                     <button
-                      onClick={ev => { ev.stopPropagation(); cloneCycle(c); }}
+                      onClick={ev => { ev.stopPropagation(); openClone(c); }}
                       title="Create a new cycle with the same categories"
                       className="text-xs text-gray-400 hover:text-[#7F622C] transition-colors px-1"
                     >
@@ -356,7 +386,6 @@ export default function ManageCycles() {
                       </div>
                     </div>
 
-                    {/* ── Categories ── */}
                     <div className="px-6 py-5 border-t border-gray-100">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
@@ -397,6 +426,7 @@ export default function ManageCycles() {
                         </div>
                       )}
 
+        
                       {openId !== c.id ? (
                         <button
                           onClick={() => setOpenId(c.id)}
@@ -478,6 +508,48 @@ export default function ManageCycles() {
           })}
         </div>
       </div>
+
+      {cloneTarget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h3 className="font-bold text-gray-900 text-base mb-1">Clone cycle</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Creates a new <span className="font-semibold">closed</span> cycle with the same{' '}
+              {cloneTarget.categories?.length || 0} categor{cloneTarget.categories?.length === 1 ? 'y' : 'ies'} as{' '}
+              <span className="font-semibold text-gray-700">"{cloneTarget.title}"</span>. The original cycle and its
+              results are left untouched.
+            </p>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+              Title for the new cycle
+            </label>
+            <input
+              autoFocus
+              value={cloneTitleInput}
+              onChange={e => setCloneTitleInput(e.target.value)}
+              placeholder="e.g. Q3 2026 KSG Awards"
+              className={inp + ' mb-1'}
+            />
+            <p className="text-xs text-gray-400 mb-4">
+              Tip: give it a real name (e.g. the next quarter or year) instead of leaving the default "(Copy)" suffix.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setCloneTarget(null)}
+                className="text-xs text-gray-500 hover:text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmClone}
+                disabled={busy || !cloneTitleInput.trim()}
+                className="text-xs font-semibold text-white bg-[#7F622C] hover:bg-[#5c4620] disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 rounded-lg transition-colors"
+              >
+                {busy ? 'Cloning…' : 'Create Clone'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {forceDeleteTarget && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">

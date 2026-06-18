@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class CycleController extends Controller
 {
+    // Admin: all cycles
     public function index()
     {
         return Cycle::with('categories')->latest()->get();
@@ -29,6 +30,7 @@ class CycleController extends Controller
 
         return response()->json($cycle);
     }
+
 
     public function activeWithResults(Request $request)
     {
@@ -75,6 +77,7 @@ class CycleController extends Controller
         return response()->json($cycle->load('categories'), 201);
     }
 
+    // Admin: update title/description
     public function update(Request $request, Cycle $cycle)
     {
         $data = $request->validate([
@@ -143,7 +146,6 @@ class CycleController extends Controller
         return response()->json($cycle->load('categories'));
     }
 
-    // Admin: delete a closed cycle (normal path — used by the existing "Delete" button)
     public function destroy(Cycle $cycle)
     {
         if ($cycle->phase !== 'closed') {
@@ -174,7 +176,6 @@ class CycleController extends Controller
             'created_at'  => now(),
         ]);
 
-
         $cycle->delete();
 
         return response()->json(['message' => 'Cycle permanently deleted.']);
@@ -183,14 +184,12 @@ class CycleController extends Controller
     public function clone(Request $request, Cycle $cycle)
     {
         $data = $request->validate([
-            'title' => 'nullable|string|max:200',
+            'title' => 'required|string|max:200',
         ]);
 
         $newCycle = DB::transaction(function () use ($request, $cycle, $data) {
-            $newTitle = $data['title'] ?? "{$cycle->title} (Copy)";
-
             $new = Cycle::create([
-                'title'       => $newTitle,
+                'title'       => $data['title'],
                 'description' => $cycle->description,
                 'phase'       => 'closed',
                 'created_by'  => $request->user()->id,
