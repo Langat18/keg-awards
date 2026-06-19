@@ -86,7 +86,7 @@ export default function Landing() {
 
       <footer className="bg-white border-t border-gray-100 py-6 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <img src="/ksg-logo.png" alt="KSG" className="h-7 w-auto opacity-70" />
+          { /* <img src="/ksg-logo.png" alt="KSG" className="h-7 w-auto opacity-70" /> */ }
           <p className="text-xs text-gray-400 text-center">
             &copy; {new Date().getFullYear()} Kenya School of Government. All rights reserved.
           </p>
