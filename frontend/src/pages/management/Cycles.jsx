@@ -20,6 +20,8 @@ const ADVANCE_CONFIRM = {
 
 const inp = 'w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7F622C]/30 focus:border-[#7F622C] bg-white transition-all placeholder:text-gray-300';
 
+const EMPTY_CAT_FORM = { name: '', description: '', criteriaPoints: [''], sort_order: '' };
+
 export default function ManageCycles() {
   const { toast }                                 = useToast();
   const [cycles, setCycles]                       = useState([]);
@@ -27,7 +29,7 @@ export default function ManageCycles() {
   const [expanded, setExpanded]                   = useState({});
   const [busy, setBusy]                           = useState(false);
   const [form, setForm]                           = useState({ title: '', description: '' });
-  const [catForm, setCatForm]                     = useState({ name: '', description: '', criteria: '', sort_order: '' });
+  const [catForm, setCatForm]                     = useState(EMPTY_CAT_FORM);
   const [forceDeleteTarget, setForceDeleteTarget] = useState(null);
   const [forceDeleteInput, setForceDeleteInput]   = useState('');
   const [cloneTarget, setCloneTarget]             = useState(null);
@@ -54,12 +56,67 @@ export default function ManageCycles() {
     } finally { setBusy(false); }
   }
 
+  // ── Criteria point helpers ──
+  function updateCriteriaPoint(index, value) {
+    setCatForm(f => {
+      const points = [...f.criteriaPoints];
+      points[index] = value;
+      return { ...f, criteriaPoints: points };
+    });
+  }
+
+  function addCriteriaPoint() {
+    setCatForm(f => ({ ...f, criteriaPoints: [...f.criteriaPoints, ''] }));
+  }
+
+  function removeCriteriaPoint(index) {
+    setCatForm(f => {
+      const points = f.criteriaPoints.filter((_, i) => i !== index);
+      return { ...f, criteriaPoints: points.length ? points : [''] };
+    });
+  }
+
+  function handleCriteriaKeyDown(e, index) {
+    // Enter adds a new point and moves focus there, like a real bullet list
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      setCatForm(f => {
+        const points = [...f.criteriaPoints];
+        points.splice(index + 1, 0, '');
+        return { ...f, criteriaPoints: points };
+      });
+      setTimeout(() => {
+        const next = document.querySelector(`[data-criteria-index="${index + 1}"]`);
+        next?.focus();
+      }, 0);
+    }
+    // Backspace on an empty point (not the first) removes it and focuses the previous one
+    if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+      e.preventDefault();
+      removeCriteriaPoint(index);
+      setTimeout(() => {
+        const prev = document.querySelector(`[data-criteria-index="${index - 1}"]`);
+        prev?.focus();
+      }, 0);
+    }
+  }
+
   async function addCategory(e, cycleId) {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.post(`/cycles/${cycleId}/categories`, catForm);
-      setCatForm({ name: '', description: '', criteria: '', sort_order: '' });
+      const criteria = catForm.criteriaPoints
+        .map(p => p.trim())
+        .filter(Boolean)
+        .join('\n');
+
+      await api.post(`/cycles/${cycleId}/categories`, {
+        name:        catForm.name,
+        description: catForm.description,
+        criteria,
+        sort_order:  catForm.sort_order,
+      });
+      setCatForm(EMPTY_CAT_FORM);
       setOpenId(null);
       toast.success('Category added.');
       load();
@@ -154,14 +211,14 @@ export default function ManageCycles() {
   return (
     <div className="max-w-5xl mx-auto">
 
-      {/* ── Page header ── */}
+    
       <div className="mb-8">
         <p className="text-xs font-semibold text-[#7F622C] uppercase tracking-widest mb-1">Administration</p>
         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Award Cycles</h2>
         <p className="text-gray-400 text-sm mt-1">Create a cycle, add categories, then open nominations when ready.</p>
       </div>
 
-      {/* ── New Cycle form — full width on top ── */}
+ 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8">
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/60 flex items-center justify-between">
           <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">New Cycle</h3>
@@ -208,7 +265,7 @@ export default function ManageCycles() {
         </form>
       </div>
 
-      {/* ── Cycles list ── */}
+  
       <div className="space-y-4">
         {cycles.length === 0 && (
           <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-14 text-center">
@@ -228,7 +285,6 @@ export default function ManageCycles() {
           return (
             <div key={c.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
-              {/* Cycle header */}
               <div
                 className="flex items-center justify-between px-6 py-4 cursor-pointer select-none hover:bg-gray-50/60 transition-colors"
                 onClick={() => toggleExpand(c.id)}
@@ -278,7 +334,7 @@ export default function ManageCycles() {
 
               {isExpanded && (
                 <>
-                  {/* Phase stepper + controls */}
+              
                   <div className="px-6 py-4 bg-gray-50/60 border-t border-gray-100">
                     <div className="flex items-center mb-4">
                       {STEPS.map((ph, i) => {
@@ -369,28 +425,41 @@ export default function ManageCycles() {
 
                     {c.categories?.length > 0 && (
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
-                        {c.categories.map(cat => (
-                          <div key={cat.id}
-                            className="group flex items-start justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100 hover:border-gray-200 transition-colors"
-                          >
-                            <div className="min-w-0 pr-2">
-                              <p className="text-sm font-semibold text-gray-800 leading-tight">{cat.name}</p>
-                              {cat.criteria && (
-                                <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{cat.criteria}</p>
-                              )}
+                        {c.categories.map(cat => {
+                          const points = (cat.criteria || '').split('\n').map(p => p.trim()).filter(Boolean);
+                          return (
+                            <div key={cat.id}
+                              className="group flex items-start justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100 hover:border-gray-200 transition-colors"
+                            >
+                              <div className="min-w-0 pr-2">
+                                <p className="text-sm font-semibold text-gray-800 leading-tight">{cat.name}</p>
+                                {points.length > 0 && (
+                                  <ul className="mt-1.5 space-y-0.5">
+                                    {points.slice(0, 3).map((pt, i) => (
+                                      <li key={i} className="text-xs text-gray-400 flex gap-1.5">
+                                        <span className="text-[#7F622C]/50 shrink-0">•</span>
+                                        <span className="line-clamp-1">{pt}</span>
+                                      </li>
+                                    ))}
+                                    {points.length > 3 && (
+                                      <li className="text-xs text-gray-300 italic">+{points.length - 3} more</li>
+                                    )}
+                                  </ul>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => deleteCategory(c.id, cat.id)}
+                                className="text-gray-200 hover:text-red-400 transition-colors shrink-0 text-lg leading-none mt-0.5 opacity-0 group-hover:opacity-100"
+                              >×</button>
                             </div>
-                            <button
-                              onClick={() => deleteCategory(c.id, cat.id)}
-                              className="text-gray-200 hover:text-red-400 transition-colors shrink-0 text-lg leading-none mt-0.5 opacity-0 group-hover:opacity-100"
-                            >×</button>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
 
                     {openId !== c.id ? (
                       <button
-                        onClick={() => setOpenId(c.id)}
+                        onClick={() => { setOpenId(c.id); setCatForm(EMPTY_CAT_FORM); }}
                         className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#7F622C] hover:text-[#5c4620] bg-[#7F622C]/5 hover:bg-[#7F622C]/10 px-3.5 py-2 rounded-lg transition-colors"
                       >
                         + Add Category
@@ -419,17 +488,50 @@ export default function ManageCycles() {
                               onChange={e => setCatForm(f => ({ ...f, description: e.target.value }))} className={inp} />
                           </div>
                           <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Judging Criteria</label>
-                            <input placeholder="What qualifies someone for this award?" value={catForm.criteria}
-                              onChange={e => setCatForm(f => ({ ...f, criteria: e.target.value }))} className={inp} />
+                            <div className="flex items-center justify-between mb-1.5">
+                              <label className="block text-xs font-semibold text-gray-500">Judging Criteria</label>
+                              <span className="text-[10px] text-gray-300">Press Enter to add a point</span>
+                            </div>
+                            <div className="space-y-1.5">
+                              {catForm.criteriaPoints.map((point, i) => (
+                                <div key={i} className="flex items-center gap-2">
+                                  <span className="text-[#7F622C] text-sm shrink-0 select-none">•</span>
+                                  <input
+                                    data-criteria-index={i}
+                                    value={point}
+                                    onChange={e => updateCriteriaPoint(i, e.target.value)}
+                                    onKeyDown={e => handleCriteriaKeyDown(e, i)}
+                                    placeholder={i === 0 ? 'e.g. Demonstrated leadership across teams' : 'Add another point…'}
+                                    className={inp}
+                                  />
+                                  {catForm.criteriaPoints.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removeCriteriaPoint(i)}
+                                      className="shrink-0 text-gray-300 hover:text-red-400 transition-colors text-base leading-none px-1"
+                                    >
+                                      ×
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={addCriteriaPoint}
+                              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#7F622C] hover:text-[#5c4620] transition-colors"
+                            >
+                              + Add point
+                            </button>
                           </div>
+
                           <div className="flex gap-2 pt-1">
                             <button type="submit" disabled={busy}
                               className="bg-[#7F622C] text-white text-xs font-semibold px-5 py-2 rounded-lg hover:bg-[#5c4620] disabled:opacity-50 transition-colors">
                               {busy ? 'Saving…' : 'Add Category'}
                             </button>
                             <button type="button"
-                              onClick={() => { setOpenId(null); setCatForm({ name: '', description: '', criteria: '', sort_order: '' }); }}
+                              onClick={() => { setOpenId(null); setCatForm(EMPTY_CAT_FORM); }}
                               className="text-xs text-gray-400 hover:text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                               Cancel
                             </button>

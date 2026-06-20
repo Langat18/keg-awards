@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext';
@@ -30,18 +29,15 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-[#f5f3ee] flex flex-col items-center justify-center px-4">
 
-      <div className="w-full max-w-sm mb-4">
-        <Link to="/" className="text-xs text-gray-400 hover:text-[#7F622C] transition-colors flex items-center gap-1">
-          ← Back to homepage
-        </Link>
-      </div>
-
       <div className="w-full max-w-sm bg-white rounded-lg shadow-sm border border-gray-100 px-8 py-10">
 
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <img src="/ksg-logo.png" alt="Kenya School of Government" className="h-16 w-auto" />
-        </div>
+        <Link to="/" className="flex justify-center mb-6 group">
+          <img
+            src="/ksg-logo.png"
+            alt="Kenya School of Government — back to homepage"
+            className="h-16 w-auto transition-opacity group-hover:opacity-80"
+          />
+        </Link>
 
         <div className="text-center mb-8">
           <h1 className="text-lg font-bold text-[#7F622C]">Kenya School of Government</h1>
@@ -92,6 +88,13 @@ export default function Login() {
           </Link>
         </p>
       </div>
+
+      <Link
+        to="/"
+        className="text-xs text-gray-400 hover:text-[#7F622C] transition-colors flex items-center gap-1 mt-5"
+      >
+      Homepage
+      </Link>
 
       <p className="text-xs text-gray-400 mt-6">
         &copy; {new Date().getFullYear()} Kenya School of Government
