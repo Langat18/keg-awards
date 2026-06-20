@@ -24,17 +24,9 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
 
-      <header className="bg-[#7F622C] sticky top-0 z-40 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <img src="/ksg-logo.png" alt="Kenya School of Government" className="h-9 w-auto" />
-          <div className="flex items-center gap-2">
-            <Link to="/login" className="text-sm font-medium text-white/80 hover:text-white px-4 py-2 rounded-lg hover:bg-white/10 transition-colors">
-              Log In
-            </Link>
-            <Link to="/register" className="text-sm font-semibold bg-[#CBD300] text-[#3d2e00] px-4 py-2 rounded-lg hover:bg-[#b8be00] transition-colors">
-              Register
-            </Link>
-          </div>
+      <header className="bg-white sticky top-0 z-40 shadow-sm border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-center">
+          <img src="/ksg-logo.png" alt="Kenya School of Government" className="h-10 w-auto" />
         </div>
       </header>
 
@@ -58,14 +50,15 @@ export default function Landing() {
             A formal, staff-driven platform for nominating, voting, and celebrating outstanding colleagues at KSG Mombasa Campus.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/register" className="bg-[#7F622C] text-white font-bold px-7 py-3.5 rounded-xl hover:bg-[#5c4620] transition-colors text-sm">
+            <Link to="/register" className="bg-[#CBD300] text-black font-bold px-7 py-3.5 rounded-xl hover:bg-[#f5f3f2] transition-colors text-sm">
               Create Account
             </Link>
-            <Link to="/login" className="border-2 border-white text-white font-bold px-7 py-3.5 rounded-xl hover:bg-white hover:text-gray-900 transition-colors text-sm">
+            <Link to="/login" className="bg-[#CBD300] text-black font-bold px-7 py-3.5 rounded-xl hover:bg-[#f5f3f2] transition-colors text-sm">
               Sign In
             </Link>
           </div>
         </div>
+      
       </section>
 
       <section className="bg-white py-16 px-6 border-b border-gray-100">
@@ -86,7 +79,6 @@ export default function Landing() {
 
       <footer className="bg-white border-t border-gray-100 py-6 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          { /* <img src="/ksg-logo.png" alt="KSG" className="h-7 w-auto opacity-70" /> */ }
           <p className="text-xs text-gray-400 text-center">
             &copy; {new Date().getFullYear()} Kenya School of Government. All rights reserved.
           </p>
