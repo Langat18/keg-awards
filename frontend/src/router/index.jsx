@@ -35,13 +35,13 @@ function RequireAdmin({ children }) {
 }
 
 export const router = createBrowserRouter([
-  // Public pages
+
   { path: '/',          element: <GuestLanding /> },
   { path: '/login',     element: <Login /> },
   { path: '/register',  element: <Register /> },
   { path: '/forbidden', element: <ForbiddenPage /> },
 
-  // Staff portal
+
   {
     path: '/staff',
     element: <RequireAuth><StaffLayout /></RequireAuth>,
@@ -54,7 +54,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Admin / management portal
+
   {
     path: '/management',
     element: <RequireAdmin><ManagementLayout /></RequireAdmin>,

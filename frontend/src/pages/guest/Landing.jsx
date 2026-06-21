@@ -30,7 +30,7 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Hero */}
+    
       <section
         className="relative py-28 px-6 border-b border-gray-100 flex items-center justify-center"
         style={{
@@ -63,7 +63,6 @@ export default function Landing() {
 
       <section className="bg-white py-16 px-6 border-b border-gray-100">
         <div className="max-w-4xl mx-auto">
-          { /*<h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2 text-center">Why it matters</h3> */}
           <h2 className="text-2xl font-black text-gray-900 text-center mb-10">Built on fairness and transparency</h2>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             {FEATURES.map(f => (

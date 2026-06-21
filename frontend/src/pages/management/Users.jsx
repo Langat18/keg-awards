@@ -94,7 +94,7 @@ export default function ManageUsers() {
         </div>
       </div>
 
-      {/* Search */}
+     
       <div className="relative mb-5">
         <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
@@ -113,7 +113,7 @@ export default function ManageUsers() {
         )}
       </div>
 
-      {/* Table */}
+   
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -141,7 +141,7 @@ export default function ManageUsers() {
               return (
                 <tr key={u.id} className={`transition-colors hover:bg-gray-50/80 ${!u.is_active ? 'opacity-60' : ''}`}>
 
-                  {/* Name */}
+           
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-[#7F622C]/10 text-[#7F622C] text-xs font-bold flex items-center justify-center shrink-0">
@@ -151,13 +151,12 @@ export default function ManageUsers() {
                     </div>
                   </td>
 
-                  {/* Email */}
+                
                   <td className="px-5 py-4 text-gray-400 text-xs hidden sm:table-cell">{u.email}</td>
 
-                  {/* Department */}
+                  
                   <td className="px-5 py-4 text-gray-500 text-xs hidden md:table-cell">{u.department || '—'}</td>
 
-                  {/* Role */}
                   <td className="px-5 py-4">
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full capitalize ${
                       isAdmin
@@ -168,7 +167,7 @@ export default function ManageUsers() {
                     </span>
                   </td>
 
-                  {/* Status */}
+                 
                   <td className="px-5 py-4">
                     <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
                       u.is_active ? 'text-emerald-600' : 'text-red-400'
@@ -178,7 +177,7 @@ export default function ManageUsers() {
                     </span>
                   </td>
 
-                  {/* Results Access */}
+                  
                   <td className="px-5 py-4 hidden lg:table-cell">
                     {isAdmin ? (
                       <span className="text-xs text-gray-300 font-medium">Always on</span>
@@ -202,7 +201,7 @@ export default function ManageUsers() {
                     )}
                   </td>
 
-                  {/* Actions */}
+                
                   <td className="px-5 py-4">
                     {!isAdmin && (
                       <div className="flex items-center justify-end gap-2">

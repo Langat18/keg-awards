@@ -82,7 +82,7 @@ export default function AdminResults() {
   return (
     <div className="max-w-5xl mx-auto">
 
-      {/* Header */}
+    
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold text-[#7F622C] uppercase tracking-widest mb-1">Administration</p>
@@ -110,7 +110,7 @@ export default function AdminResults() {
         </div>
       </div>
 
-      {/* Empty state */}
+    
       {cycles.length === 0 && (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 py-20 text-center">
           <p className="text-3xl mb-3">🏆</p>
@@ -121,7 +121,7 @@ export default function AdminResults() {
 
       {cycles.length > 0 && (
         <>
-          {/* Cycle selector */}
+     
           {cycles.length > 1 && (
             <div className="flex gap-2 mb-6 flex-wrap">
               {cycles.map(c => (
@@ -140,7 +140,7 @@ export default function AdminResults() {
             </div>
           )}
 
-          {/* Cycle title */}
+        
           {cycle && (
             <div className="flex items-center gap-3 mb-6">
               <h3 className="text-base font-bold text-gray-800">{cycle.title}</h3>

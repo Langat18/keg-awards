@@ -77,7 +77,6 @@ export default function ManageCycles() {
   }
 
   function handleCriteriaKeyDown(e, index) {
-    // Enter adds a new point and moves focus there, like a real bullet list
     if (e.key === 'Enter') {
       e.preventDefault();
       setCatForm(f => {
@@ -90,7 +89,7 @@ export default function ManageCycles() {
         next?.focus();
       }, 0);
     }
-    // Backspace on an empty point (not the first) removes it and focuses the previous one
+  
     if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
       e.preventDefault();
       removeCriteriaPoint(index);
@@ -547,7 +546,7 @@ export default function ManageCycles() {
         })}
       </div>
 
-      {/* ── Clone modal ── */}
+
       {cloneTarget && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
