@@ -13,6 +13,15 @@ const PHASE_INFO = {
 
 const PHASE_STEPS = ['closed', 'nominating', 'voting', 'results'];
 
+const CATEGORY_STYLES = [
+  { icon: '🏆', accent: 'border-l-[#7F622C]' },
+  { icon: '⭐', accent: 'border-l-amber-400'  },
+  { icon: '💡', accent: 'border-l-blue-400'   },
+  { icon: '🤝', accent: 'border-l-emerald-400'},
+  { icon: '🎯', accent: 'border-l-rose-400'   },
+  { icon: '🚀', accent: 'border-l-violet-400' },
+];
+
 export default function StaffHome() {
   const { user, canViewResults } = useAuth();
   const { cycle, loading }       = useCycle();
@@ -32,7 +41,7 @@ export default function StaffHome() {
   ];
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-[#7F622C]">
           Welcome, {user?.name?.split(' ')[0]} 👋
@@ -85,20 +94,28 @@ export default function StaffHome() {
         <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-4 py-2.5">{info.tip}</p>
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    
+      <div className="flex gap-4 mb-10">
         {ACTION_CARDS.map(c => {
           const active = phase === c.phase;
           return (
             <Link
               key={c.to}
               to={c.to}
-              className={`rounded-xl border p-5 transition-all ${
+              className={`flex-1 rounded-xl border p-5 transition-all ${
                 active
-                  ? 'bg-[#7F622C] border-[#7F622C] shadow-md'
-                  : 'bg-white border-gray-100 hover:border-[#CBD300] shadow-sm'
+                  ? 'bg-[#7F622C] border-[#7F622C] shadow-md scale-[1.01]'
+                  : 'bg-white border-gray-200 hover:border-[#CBD300] shadow-sm opacity-90 hover:opacity-100'
               }`}
             >
-              <p className="text-2xl mb-2">{c.icon}</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-2xl">{c.icon}</p>
+                {active && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#CBD300] bg-white/10 px-2 py-0.5 rounded-full">
+                    Active now
+                  </span>
+                )}
+              </div>
               <p className={`font-bold text-base ${active ? 'text-white' : 'text-gray-800'}`}>{c.label}</p>
               <p className={`text-xs mt-1 ${active ? 'text-[#CBD300]' : 'text-gray-400'}`}>{c.desc}</p>
             </Link>
@@ -108,21 +125,49 @@ export default function StaffHome() {
 
       {cycle?.categories?.length > 0 && (
         <div>
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
+          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
             Award Categories
           </h4>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {cycle.categories.map(cat => (
-              <Card key={cat.id}>
-                <p className="font-semibold text-[#7F622C]">{cat.name}</p>
-                {cat.description && <p className="text-xs text-gray-500 mt-1">{cat.description}</p>}
-                {cat.criteria && (
-                  <div className="mt-2 bg-[#CBD300]/10 border border-[#CBD300]/30 rounded px-3 py-1.5">
-                    <p className="text-xs text-[#5c4620]"><strong>Criteria:</strong> {cat.criteria}</p>
+          <div className="flex flex-col gap-4">
+            {cycle.categories.map((cat, idx) => {
+              const style  = CATEGORY_STYLES[idx % CATEGORY_STYLES.length];
+              const points = (cat.criteria || '')
+                .split('\n')
+                .map(p => p.trim())
+                .filter(Boolean);
+
+              return (
+                <div
+                  key={cat.id}
+                  className={`bg-white rounded-xl border border-gray-100 border-l-[3px] ${style.accent} shadow-sm p-5`}
+                >
+                  <div className="flex items-start gap-2.5 mb-2">
+                    <span className="text-xl leading-none shrink-0 mt-0.5">{style.icon}</span>
+                    <h5 className="font-bold text-gray-900 text-sm leading-snug">{cat.name}</h5>
                   </div>
-                )}
-              </Card>
-            ))}
+
+                  {cat.description && (
+                    <p className="text-xs text-gray-500 leading-relaxed mb-3 ml-[30px] max-w-3xl">{cat.description}</p>
+                  )}
+
+                  {points.length > 0 && (
+                    <div className="ml-[30px] max-w-3xl bg-gray-50 border border-gray-100 rounded-lg px-3.5 py-3">
+                      <p className="text-[10px] font-bold text-[#7F622C] uppercase tracking-wider mb-1.5">
+                        Judging Criteria
+                      </p>
+                      <ul className="space-y-1">
+                        {points.map((pt, i) => (
+                          <li key={i} className="text-xs text-gray-600 leading-snug flex gap-1.5">
+                            <span className="text-[#7F622C] shrink-0">•</span>
+                            <span>{pt}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
