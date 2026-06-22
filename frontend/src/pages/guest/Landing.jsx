@@ -9,7 +9,7 @@ const FEATURES = [
   },
   {
     title: 'Transparent Voting',
-    desc:  'One vote per category. All nominees visible to all staff.',
+    desc:  'All nominees visible to all staff where a vote per category is cast.',
   },
 ];
 
