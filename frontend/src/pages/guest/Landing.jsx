@@ -48,7 +48,7 @@ export default function Landing() {
         </div>
       </header>
 
-      <section className="relative overflow-hidden border-b border-ksg-brown/10">
+       <section className="relative overflow-hidden border-b border-ksg-brown/10">
         <div
           className="absolute inset-0"
           style={{
@@ -57,26 +57,26 @@ export default function Landing() {
             backgroundPosition: 'center',
           }}
         />
-        <div className="absolute inset-0 bg-black/70" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
-
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/5" />
+ 
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-32 sm:py-40 text-center">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ksg-lime mb-6">
+          <h3 className="font-serif text-[2.75rem] sm:text-4xl text-ksg-lime mb-6">
             Kenya School of Government — Mombasa Campus
-          </h2>
-
+          </h3>
+ 
           <h1 className="font-serif text-[2.75rem] sm:text-6xl font-bold text-white leading-[1.08] mb-6">
             Staff Rewards &amp;<br />Recognition System
           </h1>
-
+ 
           <div className="w-14 h-[3px] bg-ksg-lime mx-auto mb-6" />
-
+ 
           <p className="text-white/85 text-lg leading-relaxed max-w-xl mx-auto mb-12">
             A staff-driven platform for nominating, voting, and celebrating
             outstanding colleagues.
           </p>
-
-          { /* <div className="flex flex-col sm:flex-row gap-3 justify-center">
+ 
+          {/*<div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               to="/register"
               className="bg-ksg-lime text-gray-900 font-bold px-8 py-3.5 rounded-md hover:bg-ksg-limeDk transition-colors text-sm"
@@ -89,10 +89,10 @@ export default function Landing() {
             >
               Sign In
             </Link>
-          </div> */}
+          </div>*/}
         </div>
       </section>
-
+ 
       <section className="bg-ksg-bg py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="max-w-xl mb-16">
