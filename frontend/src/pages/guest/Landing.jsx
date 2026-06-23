@@ -41,14 +41,14 @@ export default function Landing() {
       >
         <div className="relative z-10 max-w-3xl mx-auto text-center">
           <h1 className="text-5xl sm:text-6xl font-black text-white leading-tight mb-3 drop-shadow-lg">
-            Kenya School of Government
+            Kenya School of Government Mombasa Campus
           </h1>
           <p className="text-4xl sm:text-5xl font-black text-white leading-tight mb-8 drop-shadow-lg">
             Staff Rewards &amp; Recognition System
           </p>
-          <p className="text-white text-lg leading-relaxed mb-10 max-w-xl mx-auto font-medium">
+          {/* <p className="text-white text-lg leading-relaxed mb-10 max-w-xl mx-auto font-medium">
             A formal, staff-driven platform for nominating, voting, and celebrating outstanding colleagues at KSG Mombasa Campus.
-          </p>
+          </p> */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/register" className="bg-[#CBD300] text-black font-bold px-7 py-3.5 rounded-xl hover:bg-[#f5f3f2] transition-colors text-sm">
               Create Account
