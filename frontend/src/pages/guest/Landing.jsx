@@ -72,7 +72,7 @@ export default function Landing() {
           <div className="w-14 h-[3px] bg-ksg-lime mx-auto mb-6" />
 
           <p className="text-white/85 text-lg leading-relaxed max-w-xl mx-auto mb-12">
-            A formal, staff-driven platform for nominating, voting, and celebrating
+            A staff-driven platform for nominating, voting, and celebrating
             outstanding colleagues.
           </p>
 
