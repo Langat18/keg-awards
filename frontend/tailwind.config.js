@@ -1,5 +1,3 @@
-
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -19,6 +17,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['"Source Serif 4"', 'Georgia', 'serif'],
       },
       keyframes: {
         'fade-in': {
