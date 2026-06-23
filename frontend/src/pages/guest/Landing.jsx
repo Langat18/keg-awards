@@ -34,7 +34,7 @@ export default function Landing() {
           <div className="hidden sm:flex items-center gap-2">
             <Link
               to="/login"
-              className="text-sm font-medium text-gray-700 hover:text-ksg-brown px-4 py-2 transition-colors"
+              className="text-sm font-semibold  bg-ksg-brown text-white px-5 py-2.5 rounded-md hover:text-ksg-brownDk transition-colors"
             >
               Sign In
             </Link>
@@ -123,7 +123,7 @@ export default function Landing() {
             Ready to take part?
           </h2>
           <p className="text-white/70 text-sm leading-relaxed mb-8 max-w-md mx-auto">
-            Register with your official KSG email to nominate colleagues and cast
+            Register with email to nominate colleagues and cast
             your vote in the current awards cycle.
           </p>
           <Link
