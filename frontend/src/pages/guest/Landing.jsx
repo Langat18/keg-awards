@@ -34,7 +34,7 @@ export default function Landing() {
           <div className="hidden sm:flex items-center gap-2">
             <Link
               to="/login"
-              className="text-sm font-semibold  bg-ksg-brown text-white px-5 py-2.5 rounded-md hover:text-ksg-brownDk transition-colors"
+              className="text-sm font-semibold  bg-ksg-brown text-white px-5 py-2.5 rounded-md hover:bg-ksg-brownDk transition-colors"
             >
               Sign In
             </Link>
@@ -65,7 +65,7 @@ export default function Landing() {
             Kenya School of Government — Mombasa Campus
           </h3>
  
-          <h1 className="font-serif text-[2.75rem] sm:text-6xl font-bold text-white leading-[1.08] mb-6">
+          <h1 className="font-serif text-[2.75rem] sm:text-5xl font-bold text-white leading-[1.08] mb-6">
             Staff Rewards &amp;<br />Recognition System
           </h1>
  
@@ -123,7 +123,7 @@ export default function Landing() {
             Ready to take part?
           </h2>
           <p className="text-white/70 text-sm leading-relaxed mb-8 max-w-md mx-auto">
-            Register with email to nominate colleagues and cast
+            Register with your email to nominate colleagues and cast
             your vote in the current awards cycle.
           </p>
           <Link
