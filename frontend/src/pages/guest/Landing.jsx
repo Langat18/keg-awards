@@ -62,7 +62,10 @@ export default function Landing() {
  
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-32 sm:py-40 text-center">
           <h3 className="font-serif text-[2.75rem] sm:text-4xl text-ksg-lime mb-6">
-            Kenya School of Government — Mombasa Campus
+            Kenya School of Government
+          </h3>
+          <h3 className="font-serif text-[2.75rem] sm:text-4xl text-ksg-lime mb-6">
+            Mombasa Campus
           </h3>
  
           <h1 className="font-serif text-[2.75rem] sm:text-5xl font-bold text-white leading-[1.08] mb-6">
@@ -72,8 +75,8 @@ export default function Landing() {
           <div className="w-14 h-[3px] bg-ksg-lime mx-auto mb-6" />
  
           <p className="text-white/85 text-lg leading-relaxed max-w-xl mx-auto mb-12">
-            A staff-driven platform for nominating, voting, and celebrating
-            outstanding colleagues.
+            A staff-driven platform for nominating, voting and celebrating
+            outstanding colleagues
           </p>
  
           {/*<div className="flex flex-col sm:flex-row gap-3 justify-center">
