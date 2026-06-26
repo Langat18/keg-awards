@@ -37,7 +37,7 @@ services:
         value: stderr
 
   - type: web
-    name: ksg-awards-frontend
+    name: ksg-awards
     runtime: docker
     plan: free
     rootDir: frontend
