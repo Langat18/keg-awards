@@ -18,6 +18,15 @@ Route::get('/debug-routes', function () {
         'all_registered_routes' => collect(\Illuminate\Support\Facades\Route::getRoutes())->map(fn($r) => $r->uri())->values(),
     ]);
 });
+Route::get('/debug-dburl', function () {
+    return response()->json([
+        'DB_URL' => env('DB_URL'),
+        'DATABASE_URL' => env('DATABASE_URL'),
+        'DB_CONNECTION' => env('DB_CONNECTION'),
+        'DB_HOST' => env('DB_HOST'),
+    ]);
+});
+
 Route::get('/debug-token', function () {
     return response()->json([
         'token_value' => env('ADMIN_SETUP_TOKEN'),
