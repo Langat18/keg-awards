@@ -72,7 +72,7 @@ Route::get('/setup-admin/{token}', function (string $token) {
 
         User::create([
             'name' => 'System Admin',
-            'email' => 'admin@ksg.ac.ke',
+            'email' => 'system.admin@ksg.ac.ke',
             'password' => bcrypt('Admin@123'),
             'role' => 'admin',
             'is_active' => true,
