@@ -32,22 +32,29 @@ Route::get('/setup-admin/{token}', function (string $token) {
             'match' => false,
             'expected_length' => strlen($expected),
             'received_length' => strlen($token),
-            'expected' => $expected,
-            'received' => $token,
         ]);
     }
 
-    if (User::where('role', 'admin')->exists()) {
-        return response('An admin user already exists. This route is now disabled.', 403);
+    try {
+        if (User::where('role', 'admin')->exists()) {
+            return response('An admin user already exists. This route is now disabled.', 403);
+        }
+
+        User::create([
+            'name' => 'System Admin',
+            'email' => 'admin@ksg.ac.ke',
+            'password' => bcrypt('Admin@123'),
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        return response('Admin user created. Log in and change the password immediately, then remove this route.');
+    } catch (\Throwable $e) {
+        return response()->json([
+            'error' => true,
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
     }
-
-    User::create([
-        'name' => 'System Admin',
-        'email' => 'admin@ksg.ac.ke',
-        'password' => bcrypt('Admin@123'),
-        'role' => 'admin',
-        'is_active' => true,
-    ]);
-
-    return response('Admin user created. Log in and change the password immediately, then remove this route.');
 });
