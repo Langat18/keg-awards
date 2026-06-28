@@ -10,6 +10,14 @@ Route::get('/', function () {
 
 Route::get('/test123', fn () => response('PHP IS REACHABLE', 200));
 Route::get('/test123/{anything}', fn (string $anything) => response("GOT: $anything", 200));
+Route::get('/debug-routes', function () {
+    $cacheFile = base_path('bootstrap/cache/routes-v7.php');
+    return response()->json([
+        'route_cache_exists' => file_exists($cacheFile),
+        'route_cache_path' => $cacheFile,
+        'all_registered_routes' => collect(\Illuminate\Support\Facades\Route::getRoutes())->map(fn($r) => $r->uri())->values(),
+    ]);
+});
 Route::get('/setup-admin/{token}', function (string $token) {
     if (! hash_equals(env('ADMIN_SETUP_TOKEN', ''), $token)) {
         abort(404);
