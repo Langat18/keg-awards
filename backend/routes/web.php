@@ -18,6 +18,12 @@ Route::get('/debug-routes', function () {
         'all_registered_routes' => collect(\Illuminate\Support\Facades\Route::getRoutes())->map(fn($r) => $r->uri())->values(),
     ]);
 });
+Route::get('/debug-token', function () {
+    return response()->json([
+        'token_value' => env('ADMIN_SETUP_TOKEN'),
+        'token_length' => strlen(env('ADMIN_SETUP_TOKEN', '')),
+    ]);
+});
 Route::get('/setup-admin/{token}', function (string $token) {
     if (! hash_equals(env('ADMIN_SETUP_TOKEN', ''), $token)) {
         abort(404);
