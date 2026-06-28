@@ -33,6 +33,27 @@ Route::get('/debug-token', function () {
         'token_length' => strlen(env('ADMIN_SETUP_TOKEN', '')),
     ]);
 });
+Route::get('/run-migrations/{token}', function (string $token) {
+    if (! hash_equals(env('ADMIN_SETUP_TOKEN', ''), $token)) {
+        abort(404);
+    }
+
+    try {
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+
+        return response()->json([
+            'exit_code' => $exitCode,
+            'output' => \Illuminate\Support\Facades\Artisan::output(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'error' => true,
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+    }
+});
 Route::get('/setup-admin/{token}', function (string $token) {
     $expected = env('ADMIN_SETUP_TOKEN', '');
 
