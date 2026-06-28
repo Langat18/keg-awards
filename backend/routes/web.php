@@ -25,8 +25,16 @@ Route::get('/debug-token', function () {
     ]);
 });
 Route::get('/setup-admin/{token}', function (string $token) {
-    if (! hash_equals(env('ADMIN_SETUP_TOKEN', ''), $token)) {
-        abort(404);
+    $expected = env('ADMIN_SETUP_TOKEN', '');
+
+    if ($expected !== $token) {
+        return response()->json([
+            'match' => false,
+            'expected_length' => strlen($expected),
+            'received_length' => strlen($token),
+            'expected' => $expected,
+            'received' => $token,
+        ]);
     }
 
     if (User::where('role', 'admin')->exists()) {
