@@ -1,16 +1,62 @@
-# React + Vite
+# KSG Awards — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React frontend for the Kenya School of Government staff rewards and recognition system. Staff nominate and vote on award categories across a cycle (nominations → voting → results); admins manage cycles, categories, and user access from a separate management area.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + Vite
+- React Router
+- Tailwind CSS
+- Axios
 
-## React Compiler
+## Local development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+The dev server reads `VITE_API_URL` from `.env` (or `.env.local`). Point it at your local backend:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+VITE_API_URL=http://localhost:8001/api
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+Output goes to `dist/`. `VITE_API_URL` is baked into the build at this step — it is not read at runtime, so changing it requires a rebuild.
+
+## Project structure
+
+```
+src/
+  pages/
+    guest/        Landing page
+    staff/         Staff-facing pages (home, nominate, vote, results)
+    management/    Admin-facing pages (cycles, nominations, results, users)
+  components/      Shared UI components
+  hooks/           Data-fetching hooks (cycle, nominations, users)
+  store/           Auth context
+  api/             Axios instance and interceptors
+```
+
+Staff and admin areas use separate layouts (`StaffLayout`, `ManagementLayout`) and route trees, gated by the user's role from the auth context.
+
+## Environment variables
+
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | Base URL of the backend API, including the `/api` suffix |
+
+## Deployment
+
+Deployed to Render as a Docker web service. The Dockerfile builds the app with Vite and serves the static output with `serve`. See the root-level `render.yaml` and `DEPLOYMENT.md` for the full deployment process, including required environment variables and first-time setup steps.
+
+## Notes
+
+- Authentication uses Bearer tokens (Sanctum) stored in `localStorage`; the axios interceptor attaches the token to every request and redirects to `/login` on a 401.
+- Results visibility is gated per-user via a `can_view_results` flag, separate from admin status — staff without explicit access do not see the Results page or card on their dashboard.
