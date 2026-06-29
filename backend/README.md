@@ -1,58 +1,95 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# KSG Awards — Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API service for the Kenya School of Government Rewards and Recognition platform. The service manages award cycles, categories, nominations, voting, results computation, and staff account administration.
 
-## About Laravel
+## Overview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The application implements a four-phase award cycle (`closed → nominating → voting → results`), during which staff may nominate themselves or colleagues against defined categories and criteria, cast one vote per category, and view published results once a cycle concludes. Administrative functions — cycle management, category configuration, nomination moderation, and results access control — are restricted to users with the `admin` role.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Technology
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Component | Detail |
+|---|---|
+| Language / Framework | PHP 8.4, Laravel 13 |
+| Database | PostgreSQL |
+| Authentication | Laravel Sanctum (Bearer token) |
+| Container runtime | `tangramor/nginx-php8-fpm` (nginx and php-fpm in a single image) |
+| Hosting | Render (Docker web service, managed Postgres) |
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Local environment setup
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Configure the local database connection in `.env`:
 
-## Contributing
+```
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=ksg_awards
+DB_USERNAME=postgres
+DB_PASSWORD=
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Application structure
 
-## Code of Conduct
+```
+app/
+  Http/Controllers/Api/   Cycle, Category, Nomination, Vote, Result, and User controllers
+  Models/                  Cycle, Category, Nomination, Vote, User, AuditLog
+  Http/Middleware/         Role-based access middleware
+routes/
+  api.php                  Application routes, authenticated via Sanctum
+  web.php                  Health check route and maintenance utilities
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Access control
 
-## Security Vulnerabilities
+Access is governed by a `role` column on the `users` table (`admin` or staff), rather than a boolean flag. Results visibility is controlled independently via a `can_view_results` attribute, allowing specific staff members to be granted access to results without being granted administrative privileges. All administrative endpoints are protected by an `admin` middleware that verifies `role === 'admin'`.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Domain rules
 
-## License
+- Categories may only be created or modified while a cycle is in the `closed` phase.
+- A nominee may receive nominations from multiple staff members within the same category; this is by design, and results are aggregated by nominee rather than by individual nomination record.
+- Staff are permitted to nominate and vote for themselves.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Deployment
+
+The service is deployed to Render as a Docker web service against a managed PostgreSQL instance. Provisioning is defined in the repository root `render.yaml`; full setup instructions are documented in `DEPLOYMENT.md`.
+
+The following operational details are specific to the current hosting configuration and should be preserved by anyone maintaining this service:
+
+**Build-time dependency installation.** Composer dependencies are installed during the Docker build rather than via a runtime deployment hook. The base image does not provide a script-execution mechanism comparable to `RUN_SCRIPTS` in other PHP-FPM images of this type.
+
+**Database connection resolution.** The `pgsql` connection in `config/database.php` resolves its connection string via:
+
+```php
+'url' => env('DB_URL', env('DATABASE_URL')),
+```
+
+Render's managed PostgreSQL service exposes its connection string as `DATABASE_URL`, while the Laravel application skeleton's default configuration expects `DB_URL`. This fallback reconciles the two and should not be removed.
+
+**Migrations are not executed automatically on deploy.** The base image rejects direct invocation of the `php` binary from custom startup scripts, which precludes the conventional entrypoint-script pattern for running migrations on container start. Migrations are instead triggered on demand via an authenticated route in `routes/web.php`, which invokes the migrator from within the running application process:
+
+```
+GET /run-migrations/{token}
+```
+
+This route requires the `ADMIN_SETUP_TOKEN` environment variable and should be called once after any deployment that introduces new migrations.
+
+## Environment variables
+
+| Variable | Purpose |
+|---|---|
+| `APP_KEY` | Laravel application encryption key |
+| `APP_URL` | Public URL of this service |
+| `FRONTEND_URL` | Public URL of the frontend, used for CORS configuration |
+| `SANCTUM_STATEFUL_DOMAINS` | Frontend domain (without protocol), required by Sanctum |
+| `DATABASE_URL` | PostgreSQL connection string, provided automatically by Render |
+| `ADMIN_SETUP_TOKEN` | Authorization token for the migration-trigger route |
