@@ -1,175 +1,137 @@
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext';
 import { useCycle } from '../../hooks/useCycle';
+import { useVotes } from '../../hooks/useVotes';
+import { useNominations } from '../../hooks/useNominations';
+import { criteriaList, firstName, plural } from '../../lib/format';
+import { PHASE_LABEL, PHASE_TONE } from '../../lib/phases';
 import { PageSkeleton } from '../../components/Skeleton';
-import Card from '../../components/Card';
 import Badge from '../../components/Badge';
+import Button from '../../components/Button';
+import Card from '../../components/Card';
+import EmptyState from '../../components/EmptyState';
+import PhaseTrack from '../../components/PhaseTrack';
 
-const PHASE_INFO = {
-  nominating: { badge: 'blue',    label: 'Nominations Open', tip: 'Submit your nominations before this phase closes.' },
-  voting:     { badge: 'lime',    label: 'Voting Open',      tip: 'Cast your votes — one vote per category.'          },
-  closed:     { badge: 'default', label: 'No Active Cycle',  tip: 'There is no active awards cycle at the moment.'    },
-};
+function NextStep({ cycle, canViewResults }) {
+  const { user } = useAuth();
+  const live = cycle.phase === 'nominating' || cycle.phase === 'voting';
+  const { myVotes } = useVotes(cycle.phase === 'voting' ? cycle.id : null);
+  const { nominations } = useNominations(cycle.phase === 'nominating' ? cycle.id : null);
 
-const PHASE_STEPS = ['closed', 'nominating', 'voting', 'results'];
+  const total = cycle.categories?.length || 0;
 
-const CATEGORY_STYLES = [
-  { icon: '🏆', accent: 'border-l-[#7F622C]' },
-  { icon: '⭐', accent: 'border-l-amber-400'  },
-  { icon: '💡', accent: 'border-l-blue-400'   },
-  { icon: '🤝', accent: 'border-l-emerald-400'},
-  { icon: '🎯', accent: 'border-l-rose-400'   },
-  { icon: '🚀', accent: 'border-l-violet-400' },
-];
+  if (cycle.phase === 'nominating') {
+    const mine = nominations.filter(n => n.nominated_by === user.id).length;
+    return (
+      <Action
+        title="Nominations are open"
+        text={mine ? `You have made ${plural(mine, 'nomination')} so far. You can nominate in every category.` : `Put forward the colleagues who deserve recognition in ${plural(total, 'category', 'categories')}.`}
+        cta={<Button to="/staff/nominate" size="lg" variant="lime" icon="pen">Make a nomination</Button>}
+      />
+    );
+  }
+
+  if (cycle.phase === 'voting') {
+    const done = myVotes.length;
+    return (
+      <Action
+        title={done >= total && total > 0 ? 'You have voted in every category' : 'Voting is open'}
+        text={`You have voted in ${done} of ${plural(total, 'category', 'categories')}. You can change a vote until voting closes.`}
+        cta={<Button to="/staff/vote" size="lg" variant={done >= total ? 'secondary' : 'lime'} icon="ballot">{done ? 'Review my votes' : 'Start voting'}</Button>}
+      />
+    );
+  }
+
+  if (cycle.phase === 'results') {
+    return (
+      <Action
+        title="Results are published"
+        text={canViewResults ? 'See the winners and the full vote count for each category.' : 'Winners will be announced by the administration. Thank you for taking part.'}
+        cta={canViewResults && <Button to="/staff/results" size="lg" icon="trophy">See the results</Button>}
+      />
+    );
+  }
+
+  return live ? null : (
+    <Action title="Getting ready" text="The categories are being prepared. Nominations will open soon." />
+  );
+}
+
+function Action({ title, text, cta }) {
+  return (
+    <div className="flex flex-col gap-4 border-t border-white/15 pt-6 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="text-lg font-bold text-white">{title}</p>
+        <p className="mt-1 max-w-lg text-white/70">{text}</p>
+      </div>
+      {cta}
+    </div>
+  );
+}
 
 export default function StaffHome() {
   const { user, canViewResults } = useAuth();
-  const { cycle, loading }       = useCycle();
+  const { cycle, loading, error } = useCycle();
 
   if (loading) return <PageSkeleton />;
 
-  const phase   = cycle?.phase || 'closed';
-  const info    = PHASE_INFO[phase] ?? PHASE_INFO['closed'];
-  const stepIdx = PHASE_STEPS.indexOf(phase);
-
-  const ACTION_CARDS = [
-    { to: '/staff/nominate', icon: '✍️', label: 'Nominate', desc: 'Nominate yourself or a colleague', phase: 'nominating' },
-    { to: '/staff/vote',     icon: '🗳️', label: 'Vote',     desc: 'Cast your vote for each category', phase: 'voting'     },
-    ...(canViewResults
-      ? [{ to: '/staff/results', icon: '🏅', label: 'Results', desc: 'See who took home the awards', phase: 'results' }]
-      : []),
-  ];
-
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-[#7F622C]">
-          Welcome, {user?.name?.split(' ')[0]} 👋
-        </h2>
-        <p className="text-gray-500 text-sm mt-0.5">{user?.email}</p>
-      </div>
+    <div>
+      <h1 className="text-2xl sm:text-[28px]">Hello, {firstName(user?.name)}</h1>
+      <p className="mt-1 text-muted">Here is where this cycle stands.</p>
 
-      <Card className="mb-6">
-        <div className="flex items-start justify-between gap-4 mb-5">
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Active Cycle</p>
-            <h3 className="text-xl font-bold text-gray-800">
-              {cycle?.title || 'No active cycle'}
-            </h3>
-            {cycle?.description && (
-              <p className="text-gray-500 text-sm mt-1">{cycle.description}</p>
-            )}
-          </div>
-          <Badge variant={info.badge}>{info.label}</Badge>
+      {!cycle ? (
+        <div className="mt-8">
+          <EmptyState icon="trophy" title={error ? 'The awards cycle could not be loaded' : 'No awards cycle is running'}>
+            {error ? 'Refresh the page to try again.' : 'When the administration opens a new cycle you will be able to nominate colleagues here.'}
+          </EmptyState>
         </div>
-
-        {cycle && (
-          <div className="mb-4">
-            <div className="flex items-center">
-              {PHASE_STEPS.map((s, i) => (
-                <div key={s} className="flex items-center flex-1 last:flex-none">
-                  <div className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                    i < stepIdx   ? 'bg-[#7F622C] border-[#7F622C] text-white' :
-                    i === stepIdx ? 'bg-[#CBD300] border-[#CBD300]'             :
-                                    'bg-white border-gray-300'
-                  }`}>
-                    {i < stepIdx && <span className="text-[9px] leading-none">✓</span>}
-                  </div>
-                  {i < PHASE_STEPS.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-1 ${i < stepIdx ? 'bg-[#7F622C]' : 'bg-gray-200'}`} />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-1.5">
-              {PHASE_STEPS.map((s, i) => (
-                <span key={s} className={`text-xs capitalize ${i === stepIdx ? 'text-[#7F622C] font-semibold' : 'text-gray-400'}`}>
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-4 py-2.5">{info.tip}</p>
-      </Card>
-
-    
-      <div className="flex gap-4 mb-10">
-        {ACTION_CARDS.map(c => {
-          const active = phase === c.phase;
-          return (
-            <Link
-              key={c.to}
-              to={c.to}
-              className={`flex-1 rounded-xl border p-5 transition-all ${
-                active
-                  ? 'bg-[#7F622C] border-[#7F622C] shadow-md scale-[1.01]'
-                  : 'bg-white border-gray-200 hover:border-[#CBD300] shadow-sm opacity-90 hover:opacity-100'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-2xl">{c.icon}</p>
-                {active && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#CBD300] bg-white/10 px-2 py-0.5 rounded-full">
-                    Active now
-                  </span>
-                )}
+      ) : (
+        <>
+          <section className="mt-8 overflow-hidden rounded-xl bg-brand-ink p-6 text-white sm:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="text-2xl font-bold text-white sm:text-3xl">{cycle.title}</h2>
+                {cycle.description && <p className="mt-2 max-w-2xl text-white/70">{cycle.description}</p>}
               </div>
-              <p className={`font-bold text-base ${active ? 'text-white' : 'text-gray-800'}`}>{c.label}</p>
-              <p className={`text-xs mt-1 ${active ? 'text-[#CBD300]' : 'text-gray-400'}`}>{c.desc}</p>
-            </Link>
-          );
-        })}
-      </div>
+              <Badge tone={PHASE_TONE[cycle.phase]} dot>{PHASE_LABEL[cycle.phase]}</Badge>
+            </div>
 
-      {cycle?.categories?.length > 0 && (
-        <div>
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
-            Award Categories
-          </h4>
-          <div className="flex flex-col gap-4">
-            {cycle.categories.map((cat, idx) => {
-              const style  = CATEGORY_STYLES[idx % CATEGORY_STYLES.length];
-              const points = (cat.criteria || '')
-                .split('\n')
-                .map(p => p.trim())
-                .filter(Boolean);
+            <div className="my-8">
+              <PhaseTrack cycle={cycle} theme="dark" />
+            </div>
 
-              return (
-                <div
-                  key={cat.id}
-                  className={`bg-white rounded-xl border border-gray-100 border-l-[3px] ${style.accent} shadow-sm p-5`}
-                >
-                  <div className="flex items-start gap-2.5 mb-2">
-                    <span className="text-xl leading-none shrink-0 mt-0.5">{style.icon}</span>
-                    <h5 className="font-bold text-gray-900 text-sm leading-snug">{cat.name}</h5>
-                  </div>
+            <NextStep cycle={cycle} canViewResults={canViewResults} />
+          </section>
 
-                  {cat.description && (
-                    <p className="text-xs text-gray-500 leading-relaxed mb-3 ml-[30px] max-w-3xl">{cat.description}</p>
-                  )}
+          {cycle.categories?.length > 0 && (
+            <section className="mt-12">
+              <h2 className="text-xl">Award categories</h2>
+              <p className="mt-1 text-muted">What each award recognises and how nominees are judged.</p>
 
-                  {points.length > 0 && (
-                    <div className="ml-[30px] max-w-3xl bg-gray-50 border border-gray-100 rounded-lg px-3.5 py-3">
-                      <p className="text-[10px] font-bold text-[#7F622C] uppercase tracking-wider mb-1.5">
-                        Judging Criteria
-                      </p>
-                      <ul className="space-y-1">
-                        {points.map((pt, i) => (
-                          <li key={i} className="text-xs text-gray-600 leading-snug flex gap-1.5">
-                            <span className="text-[#7F622C] shrink-0">•</span>
-                            <span>{pt}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {cycle.categories.map(category => {
+                  const points = criteriaList(category.criteria);
+                  return (
+                    <Card key={category.id}>
+                      <h3 className="text-base">{category.name}</h3>
+                      {category.description && <p className="mt-1.5 text-sm text-muted">{category.description}</p>}
+                      {points.length > 0 && (
+                        <ul className="mt-4 space-y-1.5 border-t border-line pt-4 text-sm">
+                          {points.map((point, i) => (
+                            <li key={i} className="flex gap-2.5">
+                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-lime-dark" />
+                              <span>{point}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </>
       )}
     </div>
   );

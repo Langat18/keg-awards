@@ -4,198 +4,190 @@ import { useCycle } from '../../hooks/useCycle';
 import { useNominations } from '../../hooks/useNominations';
 import { useVotes } from '../../hooks/useVotes';
 import { useToast } from '../../components/Toast';
+import { criteriaList, errorMessage, plural } from '../../lib/format';
 import { PageSkeleton } from '../../components/Skeleton';
-import PhaseBanner from '../../components/PhaseBanner';
-import Card from '../../components/Card';
 import api from '../../api/axios';
+import Avatar from '../../components/Avatar';
+import Badge from '../../components/Badge';
+import Button from '../../components/Button';
+import Card from '../../components/Card';
+import EmptyState from '../../components/EmptyState';
+import Icon from '../../components/Icon';
+import PageHeader from '../../components/PageHeader';
+
+function CategoryBallot({ category, nominees, vote, onVote, busy, userId }) {
+  const [query, setQuery] = useState('');
+  const [showCriteria, setShowCriteria] = useState(false);
+  const points = criteriaList(category.criteria);
+
+  const q = query.trim().toLowerCase();
+  const visible = q
+    ? nominees.filter(n => n.nominee?.name.toLowerCase().includes(q) || (n.nominee?.department || '').toLowerCase().includes(q))
+    : nominees;
+
+  return (
+    <Card id={`category-${category.id}`} className="scroll-mt-24">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg">{category.name}</h2>
+          <p className="text-sm text-muted">{plural(nominees.length, 'nominee')}</p>
+        </div>
+        {vote ? <Badge tone="good" dot>Voted</Badge> : <Badge>Not voted yet</Badge>}
+      </div>
+
+      {points.length > 0 && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => setShowCriteria(s => !s)}
+            aria-expanded={showCriteria}
+            className="inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline"
+          >
+            {showCriteria ? 'Hide' : 'Show'} judging criteria
+            <Icon name="chevronDown" className={`h-4 w-4 transition-transform ${showCriteria ? 'rotate-180' : ''}`} />
+          </button>
+          {showCriteria && (
+            <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-muted">
+              {points.map((p, i) => <li key={i}>{p}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {nominees.length === 0 ? (
+        <p className="mt-4 rounded-lg bg-canvas px-4 py-3 text-sm text-muted">Nobody was nominated in this category.</p>
+      ) : (
+        <>
+          {nominees.length > 6 && (
+            <div className="relative mt-4">
+              <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <input
+                type="search"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder={`Search ${nominees.length} nominees`}
+                className="field pl-9"
+                aria-label={`Search nominees in ${category.name}`}
+              />
+            </div>
+          )}
+
+          <div role="radiogroup" aria-label={category.name} className="mt-4 grid gap-2 sm:grid-cols-2">
+            {visible.map(n => {
+              const chosen = vote?.nomination_id === n.id;
+              return (
+                <button
+                  key={n.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={chosen}
+                  disabled={busy}
+                  onClick={() => !chosen && onVote(category.id, n.id)}
+                  className={`flex items-center gap-3 rounded-lg border px-3 py-3 text-left transition-colors disabled:cursor-wait ${
+                    chosen ? 'border-brand bg-brand text-white' : 'border-line bg-white hover:border-brand/50 hover:bg-brand-tint'
+                  }`}
+                >
+                  <Avatar name={n.nominee?.name} size="md" inverted={chosen} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-semibold">
+                      {n.nominee?.name}
+                      {n.nominee_id === userId && <span className={`ml-1.5 font-normal ${chosen ? 'text-white/70' : 'text-muted'}`}>(you)</span>}
+                    </span>
+                    {n.nominee?.department && (
+                      <span className={`block truncate text-sm ${chosen ? 'text-white/70' : 'text-muted'}`}>{n.nominee.department}</span>
+                    )}
+                  </span>
+                  <span
+                    className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+                      chosen ? 'border-lime bg-lime text-brand-ink' : 'border-line'
+                    }`}
+                  >
+                    {chosen && <Icon name="check" className="h-3.5 w-3.5" strokeWidth={3} />}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {q && visible.length === 0 && <p className="mt-3 text-sm text-muted">No nominee matches “{query}”.</p>}
+        </>
+      )}
+    </Card>
+  );
+}
 
 export default function Vote() {
-  const { user }                 = useAuth();
-  const { cycle, loading }       = useCycle();
-  const { nominations }          = useNominations(cycle?.id);
-  const { myVotes, updateLocal } = useVotes(cycle?.id);
-  const { toast }                = useToast();
-  const [busy, setBusy]          = useState({});
-  const [searches, setSearches]  = useState({});
+  const { user } = useAuth();
+  const { cycle, loading } = useCycle();
+  const isVoting = cycle?.phase === 'voting';
+  const { nominations, loading: nomsLoading } = useNominations(isVoting ? cycle.id : null);
+  const { myVotes, recordVote } = useVotes(isVoting ? cycle.id : null);
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(null);
 
-  if (loading) return <PageSkeleton />;
-  if (!cycle || cycle.phase !== 'voting') {
-    return <PhaseBanner phase={cycle?.phase} expected="voting" label="Voting" />;
+  if (loading || (isVoting && nomsLoading)) return <PageSkeleton />;
+
+  if (!isVoting) {
+    return (
+      <>
+        <PageHeader title="Vote" />
+        <EmptyState icon="ballot" title="Voting is not open" action={<Button to="/staff" variant="secondary">Back to home</Button>}>
+          {cycle?.phase === 'nominating'
+            ? 'Nominations are still being collected. Voting opens once they close.'
+            : cycle?.phase === 'results'
+              ? 'Voting has closed and the results are published.'
+              : 'You will be able to vote here when the next cycle reaches the voting stage.'}
+        </EmptyState>
+      </>
+    );
   }
 
   async function castVote(categoryId, nominationId) {
-    setBusy(b => ({ ...b, [categoryId]: true }));
+    setBusy(categoryId);
     try {
-      await api.post(`/cycles/${cycle.id}/votes`, {
-        category_id:   categoryId,
-        nomination_id: nominationId,
-      });
-      updateLocal(categoryId, nominationId);
-      toast.success('Vote recorded!');
+      await api.post(`/cycles/${cycle.id}/votes`, { category_id: categoryId, nomination_id: nominationId });
+      recordVote(categoryId, nominationId);
+      const nominee = nominations.find(n => n.id === nominationId)?.nominee?.name;
+      toast.success(`Vote saved for ${nominee}.`);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Vote failed.');
+      toast.error(errorMessage(err, 'Your vote was not saved. Try again.'));
     } finally {
-      setBusy(b => ({ ...b, [categoryId]: false }));
+      setBusy(null);
     }
   }
 
-  function setSearch(catId, value) {
-    setSearches(s => ({ ...s, [catId]: value }));
-  }
-
-  const byCategory = cycle.categories?.map(cat => ({
-    ...cat,
-    nominees: nominations.filter(n => n.category_id === cat.id),
-  })) || [];
-
-  const votedCount = myVotes.length;
-  const total      = byCategory.length;
+  const categories = cycle.categories || [];
+  const voted = categories.filter(c => myVotes.some(v => v.category_id === c.id)).length;
+  const percent = categories.length ? Math.round((voted / categories.length) * 100) : 0;
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-[#7F622C] mb-1">Cast Your Vote</h2>
-      <p className="text-gray-500 text-sm mb-4">{cycle.title} — one vote per category</p>
+    <div>
+      <PageHeader title="Vote" description={`${cycle.title}. Pick one nominee in each category. You can change your choice until voting closes.`} />
 
-     
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 mb-6 flex items-center gap-4">
-        <div className="flex-1 bg-gray-100 rounded-full h-2.5">
-          <div
-            className="bg-[#CBD300] h-2.5 rounded-full transition-all duration-500"
-            style={{ width: total ? `${(votedCount / total) * 100}%` : '0%' }}
-          />
+      <div className="sticky top-16 z-20 -mx-4 mb-6 border-b border-line bg-canvas/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:bg-white sm:px-5">
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <p className="font-semibold">
+            {voted === categories.length ? 'All votes cast' : `${voted} of ${plural(categories.length, 'category', 'categories')} voted`}
+          </p>
+          <p className="tabular text-muted">{percent}%</p>
         </div>
-        <p className="text-xs text-gray-600 font-medium shrink-0">
-          {votedCount}/{total} voted
-        </p>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-line">
+          <div className="h-full rounded-full bg-lime transition-[width] duration-500" style={{ width: `${percent}%` }} />
+        </div>
       </div>
 
       <div className="space-y-5">
-        {byCategory.map(cat => {
-          const myVote  = myVotes.find(v => v.category_id === cat.id);
-          const isBusy  = busy[cat.id];
-          const query   = (searches[cat.id] || '').toLowerCase();
-
-          const filtered = cat.nominees.filter(n => {
-            if (!query) return true;
-            return (
-              n.nominee?.name.toLowerCase().includes(query) ||
-              (n.nominee?.department || '').toLowerCase().includes(query)
-            );
-          });
-
-          const votedNominee = myVote
-            ? cat.nominees.find(n => n.id === myVote.nomination_id)
-            : null;
-          const toShow = votedNominee && !filtered.includes(votedNominee)
-            ? [votedNominee, ...filtered]
-            : filtered;
-
-          return (
-            <Card key={cat.id}>
-              <div className="flex items-start justify-between mb-1">
-                <h4 className="font-bold text-gray-800">{cat.name}</h4>
-                {myVote && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold shrink-0 ml-2">
-                    ✓ Voted
-                  </span>
-                )}
-              </div>
-              {cat.criteria && <p className="text-xs text-gray-400 mb-3">{cat.criteria}</p>}
-
-              {cat.nominees.length === 0 ? (
-                <p className="text-xs text-gray-400 italic">No nominations in this category.</p>
-              ) : (
-                <>
-                  {cat.nominees.length > 5 && (
-                    <div className="relative mb-3">
-                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
-                      </svg>
-                      <input
-                        type="text"
-                        value={searches[cat.id] || ''}
-                        onChange={e => setSearch(cat.id, e.target.value)}
-                        placeholder={`Search ${cat.nominees.length} nominees…`}
-                        className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#7F622C] focus:ring-1 focus:ring-[#7F622C]/20 bg-gray-50"
-                      />
-                      {searches[cat.id] && (
-                        <button
-                          type="button"
-                          onClick={() => setSearch(cat.id, '')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    {toShow.length === 0 ? (
-                      <p className="text-xs text-gray-400 text-center py-3">No nominees match your search.</p>
-                    ) : (
-                      toShow.map(n => {
-                        const selected = myVote?.nomination_id === n.id;
-                        const isMe     = n.nominee_id === user.id;
-
-                        return (
-                          <button
-                            key={n.id}
-                            disabled={isBusy}
-                            onClick={() => castVote(cat.id, n.id)}
-                            className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all disabled:opacity-60 ${
-                              selected
-                                ? 'bg-[#7F622C] text-white border-[#7F622C]'
-                                : isMe
-                                ? 'bg-[#CBD300]/5 text-gray-700 border-[#CBD300]/40 hover:border-[#CBD300] hover:bg-[#CBD300]/10'
-                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-[#CBD300] hover:bg-[#CBD300]/5'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                                selected ? 'bg-white/20 text-white' : 'bg-[#7F622C]/10 text-[#7F622C]'
-                              }`}>
-                                {(n.nominee?.name || '?').split(' ').map(x => x[0]).slice(0, 2).join('').toUpperCase()}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <span className="font-semibold block truncate">
-                                  {n.nominee?.name}
-                                  {isMe && (
-                                    <span className={`ml-1.5 text-xs font-medium italic ${selected ? 'text-[#CBD300]' : 'text-[#7F622C]'}`}>
-                                      (you)
-                                    </span>
-                                  )}
-                                </span>
-                                {n.nominee?.department && (
-                                  <span className={`text-xs ${selected ? 'text-[#CBD300]' : 'text-gray-400'}`}>
-                                    {n.nominee.department}
-                                  </span>
-                                )}
-                              </div>
-                              {selected && (
-                                <svg className="w-4 h-4 text-[#CBD300] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-                                </svg>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-
-                  {query && (
-                    <p className="text-[10px] text-gray-400 mt-2 text-right">
-                      {filtered.length} of {cat.nominees.length} nominees
-                    </p>
-                  )}
-                </>
-              )}
-            </Card>
-          );
-        })}
+        {categories.map(category => (
+          <CategoryBallot
+            key={category.id}
+            category={category}
+            nominees={nominations.filter(n => n.category_id === category.id)}
+            vote={myVotes.find(v => v.category_id === category.id)}
+            onVote={castVote}
+            busy={busy === category.id}
+            userId={user.id}
+          />
+        ))}
       </div>
     </div>
   );

@@ -1,104 +1,82 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext';
+import { errorMessage } from '../../lib/format';
+import AuthLayout from './AuthLayout';
+import Button from '../../components/Button';
+import Input from '../../components/Input';
+import Icon from '../../components/Icon';
 
 export default function Login() {
   const { login } = useAuth();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
 
-  const [form, setForm]   = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-  const [busy, setBusy]   = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  async function handleSubmit(e) {
+  async function submit(e) {
     e.preventDefault();
     setBusy(true);
     setError('');
     try {
-      const user = await login(form.email, form.password);
+      const user = await login(form.email.trim(), form.password);
       navigate(user.role === 'admin' ? '/management' : '/staff', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials.');
+      setError(errorMessage(err, 'Sign in failed. Try again.'));
     } finally {
       setBusy(false);
     }
   }
 
-  const inp = 'w-full border border-gray-300 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#7F622C] focus:border-[#7F622C] bg-white transition-colors';
-
   return (
-    <div className="min-h-screen bg-[#f5f3ee] flex flex-col items-center justify-center px-4">
-
-      <div className="w-full max-w-sm bg-white rounded-lg shadow-sm border border-gray-100 px-8 py-10">
-
-        <Link to="/" className="flex justify-center mb-6 group">
-          <img
-            src="/ksg-logo.png"
-            alt="Kenya School of Government — back to homepage"
-            className="h-16 w-auto transition-opacity group-hover:opacity-80"
-          />
-        </Link>
-
-        <div className="text-center mb-8">
-          <h1 className="text-lg font-bold text-[#7F622C]">Kenya School of Government</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Staff Rewards & Recognition System</p>
-        </div>
-
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-100 text-red-600 text-xs rounded px-3 py-2">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              className={inp}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
-            <input
-              type="password"
-              required
-              value={form.password}
-              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              className={inp}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full bg-[#7F622C] text-white py-2.5 rounded text-sm font-semibold hover:bg-[#5c4620] disabled:opacity-50 transition-colors mt-2"
-          >
-            {busy ? 'Signing in…' : 'Sign In'}
-          </button>
-        </form>
-
-        <p className="text-center text-xs text-gray-400 mt-6">
-          No account?{' '}
-          <Link to="/register" className="text-[#7F622C] font-semibold hover:underline">
-            Register here
-          </Link>
+    <AuthLayout
+      title="Sign in"
+      description="Staff Rewards and Recognition"
+      footer={
+        <>
+          New here?{' '}
+          <Link to="/register" className="font-semibold text-brand hover:underline">Create an account</Link>
+        </>
+      }
+    >
+      {params.get('expired') && !error && (
+        <p className="mb-5 flex items-start gap-2 rounded border border-line bg-canvas px-3 py-2.5 text-sm">
+          <Icon name="info" className="mt-0.5 h-4 w-4 text-brand" />
+          Your session ended. Sign in again to continue.
         </p>
-      </div>
+      )}
 
-      <Link
-        to="/"
-        className="text-xs text-gray-400 hover:text-[#7F622C] transition-colors flex items-center gap-1 mt-5"
-      >
-      Homepage
-      </Link>
+      {error && (
+        <p role="alert" className="mb-5 flex items-start gap-2 rounded border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800">
+          <Icon name="alert" className="mt-0.5 h-4 w-4" />
+          {error}
+        </p>
+      )}
 
-      <p className="text-xs text-gray-400 mt-6">
-        &copy; {new Date().getFullYear()} Kenya School of Government
-      </p>
-    </div>
+      <form onSubmit={submit} className="space-y-5">
+        <Input
+          label="Email address"
+          type="email"
+          autoComplete="email"
+          placeholder="firstname.lastname@ksg.ac.ke"
+          required
+          value={form.email}
+          onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+        />
+        <Input
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          required
+          value={form.password}
+          onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+        />
+        <Button type="submit" size="lg" loading={busy} className="w-full">
+          Sign in
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }

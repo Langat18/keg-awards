@@ -2,27 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --brown:    #7F622C;
-  --brown-dk: #5c4620;
-  --lime:     #CBD300;
-  --lime-dk:  #a8ac00;
-  --bg:       #f7f6f3;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-[15px] leading-relaxed text-brand-ink antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-bold tracking-tight text-brand-ink;
+  }
+
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-brand;
+  }
+
+  ::selection {
+    @apply bg-lime text-brand-ink;
+  }
 }
 
-body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--bg);
-  color: #1a1a1a;
-  -webkit-font-smoothing: antialiased;
+@layer components {
+  .field {
+    @apply block w-full rounded border border-line bg-white px-3 py-2.5 text-sm text-brand-ink placeholder:text-muted/60 transition-colors;
+  }
+
+  .field:focus {
+    @apply border-brand outline-none ring-2 ring-brand/15;
+  }
+
+  .field[aria-invalid='true'] {
+    @apply border-red-500 ring-red-500/15;
+  }
+
+  .field:disabled {
+    @apply cursor-not-allowed bg-canvas text-muted;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .parapet {
+    --merlon: 14px;
+    -webkit-mask:
+      linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--merlon)) no-repeat,
+      linear-gradient(90deg, #000 50%, transparent 0) top left / calc(var(--merlon) * 2) var(--merlon) repeat-x;
+    mask:
+      linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--merlon)) no-repeat,
+      linear-gradient(90deg, #000 50%, transparent 0) top left / calc(var(--merlon) * 2) var(--merlon) repeat-x;
+  }
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
-.animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
-
-::-webkit-scrollbar       { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d4c4a8; border-radius: 99px; }

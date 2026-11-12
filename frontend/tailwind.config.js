@@ -1,32 +1,28 @@
-/** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    './index.html',
-    './src/**/*.{js,jsx,ts,tsx}',
-  ],
+  content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
-        ksg: {
-          brown:   '#7F622C',
-          brownDk: '#5c4620',
-          lime:    '#CBD300',
-          limeDk:  '#a8ac00',
-          bg:      '#f5f4f1',
+        brand: {
+          DEFAULT: '#7F622C',
+          dark: '#5C4620',
+          ink: '#3E2F14',
+          tint: '#F3EEE3',
         },
+        lime: {
+          DEFAULT: '#CBD300',
+          dark: '#A8AE00',
+          tint: '#F6F8D6',
+        },
+        canvas: '#F2F3EF',
+        line: '#DCDDD5',
+        muted: '#6B6A5E',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        serif: ['"Source Serif 4"', 'Georgia', 'serif'],
+        sans: ['"Public Sans Variable"', '"Public Sans"', 'system-ui', 'sans-serif'],
       },
-      keyframes: {
-        'fade-in': {
-          from: { opacity: '0', transform: 'translateY(8px)' },
-          to:   { opacity: '1', transform: 'translateY(0)'   },
-        },
-      },
-      animation: {
-        'fade-in': 'fade-in 0.2s ease-out forwards',
+      borderRadius: {
+        DEFAULT: '6px',
       },
     },
   },
