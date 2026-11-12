@@ -14,7 +14,6 @@ return new class extends Migration {
             $table->foreignId('voter_id')->constrained('users');
             $table->timestamp('created_at')->useCurrent();
 
-            // One vote per category per cycle per voter
             $table->unique(['cycle_id', 'category_id', 'voter_id']);
         });
 

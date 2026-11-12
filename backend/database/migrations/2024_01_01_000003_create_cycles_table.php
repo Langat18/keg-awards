@@ -18,7 +18,6 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        // Only one cycle in nominating or voting at a time
         DB::statement("CREATE UNIQUE INDEX idx_one_active_cycle
             ON cycles (phase) WHERE phase IN ('nominating', 'voting')");
     }

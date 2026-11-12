@@ -1,27 +1,40 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        User::firstOrCreate(
-            ['email' => 'system.admin@ksg.ac.ke'],
-            [
-                'name'       => 'System Administrator',
-                'password'   => Hash::make('KsgAdmin@2025'),
-                'role'       => 'admin',
-                'department' => 'ICT',
-                'is_active'  => true,
-            ]
-        );
+        $email = config('app.admin.email');
 
-        $this->command->info('Admin seeded: system.admin@ksg.ac.ke / KsgAdmin@2025');
-        $this->command->warn('Change the admin password immediately after first login!');
+        if (User::where('email', $email)->exists()) {
+            $this->command->info("Admin {$email} already exists. Use `php artisan admin:password` to reset the password.");
+
+            return;
+        }
+
+        $configured = config('app.admin.password');
+        $password = $configured ?: Str::password(16);
+
+        User::create([
+            'name' => 'System Administrator',
+            'email' => $email,
+            'password' => $password,
+            'role' => 'admin',
+            'department' => 'ICT',
+            'is_active' => true,
+        ]);
+
+        $this->command->info("Admin created: {$email}");
+
+        if (! $configured) {
+            $this->command->warn("Generated password: {$password}");
+            $this->command->warn('Store it somewhere safe. It will not be shown again.');
+        }
     }
 }
-

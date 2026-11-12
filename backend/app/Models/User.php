@@ -39,7 +39,6 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
-    /** Admins and explicitly granted users can view results. */
     public function canViewResults(): bool
     {
         return $this->isAdmin() || $this->can_view_results;

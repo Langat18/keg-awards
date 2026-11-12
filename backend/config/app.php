@@ -99,6 +99,13 @@ return [
 
     'key' => env('APP_KEY'),
 
+    'setup_token' => env('ADMIN_SETUP_TOKEN'),
+
+    'admin' => [
+        'email' => env('ADMIN_EMAIL', 'system.admin@ksg.ac.ke'),
+        'password' => env('ADMIN_PASSWORD'),
+    ],
+
     'previous_keys' => [
         ...array_filter(
             explode(',', (string) env('APP_PREVIOUS_KEYS', ''))

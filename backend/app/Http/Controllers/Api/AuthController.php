@@ -13,30 +13,25 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'name'       => 'required|string|max:150',
-            'email'      => [
-                'required',
-                'email',
-                'unique:users',
-                // Enforce KSG email format
-                'regex:/^[a-z]+\.[a-z]+@ksg\.ac\.ke$/i',
-            ],
-            'password'   => 'required|string|min:8|confirmed',
+            'name' => 'required|string|max:150',
+            'email' => ['required', 'email', 'max:150', 'unique:users', 'regex:/^[a-z]+\.[a-z]+@ksg\.ac\.ke$/i'],
+            'password' => 'required|string|min:8|confirmed',
             'department' => 'nullable|string|max:150',
         ], [
-            'email.regex' => 'Only KSG email addresses (firstname.lastname@ksg.ac.ke) are allowed.',
+            'email.regex' => 'Use your KSG email address (firstname.lastname@ksg.ac.ke).',
+            'email.unique' => 'An account with this email already exists. Sign in instead.',
         ]);
 
         $user = User::create([
-            'name'       => $data['name'],
-            'email'      => strtolower($data['email']),
-            'password'   => $data['password'],
+            'name' => $data['name'],
+            'email' => strtolower($data['email']),
+            'password' => $data['password'],
             'department' => $data['department'] ?? null,
-            'role'       => 'staff',
+            'role' => 'staff',
         ]);
 
         return response()->json([
-            'user'  => $user,
+            'user' => $user->fresh(),
             'token' => $user->createToken('ksg-app')->plainTextToken,
         ], 201);
     }
@@ -44,24 +39,24 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $data = $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|string',
         ]);
 
         $user = User::where('email', strtolower($data['email']))->first();
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Invalid credentials.'],
+                'email' => ['The email or password is incorrect.'],
             ]);
         }
 
         if (! $user->is_active) {
-            return response()->json(['message' => 'Your account has been deactivated. Contact admin.'], 403);
+            return response()->json(['message' => 'Your account has been deactivated. Contact the administrator.'], 403);
         }
 
         return response()->json([
-            'user'  => $user,
+            'user' => $user,
             'token' => $user->createToken('ksg-app')->plainTextToken,
         ]);
     }
@@ -70,7 +65,7 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out successfully.']);
+        return response()->json(['message' => 'Signed out.']);
     }
 
     public function me(Request $request)
