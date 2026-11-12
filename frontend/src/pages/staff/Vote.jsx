@@ -164,7 +164,7 @@ export default function Vote() {
     <div>
       <PageHeader title="Vote" description={`${cycle.title}. Pick one nominee in each category. You can change your choice until voting closes.`} />
 
-      <div className="sticky top-16 z-20 -mx-4 mb-6 border-b border-line bg-canvas/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:bg-white sm:px-5">
+      <div className="sticky top-[67px] z-20 -mx-4 mb-6 border-b border-line bg-canvas/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:bg-white sm:px-5">
         <div className="flex items-center justify-between gap-4 text-sm">
           <p className="font-semibold">
             {voted === categories.length ? 'All votes cast' : `${voted} of ${plural(categories.length, 'category', 'categories')} voted`}

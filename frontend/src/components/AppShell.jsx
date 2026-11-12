@@ -63,10 +63,8 @@ export default function AppShell({ links, profilePath, subtitle, areaLabel }) {
   useEffect(() => setDrawer(false), [location.pathname]);
 
   const linkClass = ({ isActive }) =>
-    `relative flex h-16 items-center gap-2 px-3 text-sm font-semibold transition-colors ${
-      isActive
-        ? 'text-brand-ink after:absolute after:inset-x-3 after:bottom-0 after:h-[3px] after:rounded-t after:bg-lime'
-        : 'text-muted hover:text-brand-ink'
+    `flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+      isActive ? 'bg-brand text-white' : 'text-muted hover:bg-brand/5 hover:text-brand'
     }`;
 
   return (
@@ -75,7 +73,7 @@ export default function AppShell({ links, profilePath, subtitle, areaLabel }) {
         Skip to content
       </a>
 
-      <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-40 bg-white shadow-sm">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
           <button
             onClick={() => setDrawer(true)}
@@ -85,14 +83,16 @@ export default function AppShell({ links, profilePath, subtitle, areaLabel }) {
             <Icon name="menu" />
           </button>
 
-          <Link to={links[0].to} className="flex shrink-0 items-center gap-3">
-            <img src="/ksg-logo.png" alt="Kenya School of Government" className="h-8 w-auto" />
+          <div className="flex shrink-0 items-center gap-3">
+            <Link to={links[0].to}>
+              <img src="/ksg-logo.png" alt="Kenya School of Government, home" className="h-9 w-auto" />
+            </Link>
             {areaLabel && (
-              <span className="hidden border-l border-line pl-3 text-sm font-semibold text-brand lg:inline">{areaLabel}</span>
+              <span className="hidden rounded-full bg-lime-tint px-2.5 py-0.5 text-xs font-semibold text-brand-dark xl:inline">{areaLabel}</span>
             )}
-          </Link>
+          </div>
 
-          <nav className="ml-4 hidden flex-1 md:flex" aria-label="Main">
+          <nav className="ml-4 hidden flex-1 gap-1 md:flex" aria-label="Main">
             {links.map(link => (
               <NavLink key={link.to} to={link.to} end={link.end} className={linkClass}>
                 {link.label}
@@ -104,6 +104,7 @@ export default function AppShell({ links, profilePath, subtitle, areaLabel }) {
             <UserMenu profilePath={profilePath} subtitle={subtitle} />
           </div>
         </div>
+        <div className="h-[3px] bg-lime" />
       </header>
 
       {drawer && (

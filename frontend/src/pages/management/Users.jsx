@@ -133,7 +133,7 @@ export default function ManageUsers() {
               aria-selected={filter === f.key}
               onClick={() => setFilter(f.key)}
               className={`flex shrink-0 items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold ${
-                filter === f.key ? 'bg-brand-ink text-white' : 'text-muted hover:bg-white hover:text-brand-ink'
+                filter === f.key ? 'bg-brand text-white' : 'text-muted hover:bg-white hover:text-brand-ink'
               }`}
             >
               {f.label}
