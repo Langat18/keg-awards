@@ -67,10 +67,10 @@ export default function ManagementHome() {
   }
 
   const stats = [
-    { label: 'Nominations', value: cycle?.nominations_count ?? 0, to: '/management/nominations' },
-    { label: 'Votes cast', value: cycle?.votes_count ?? 0, to: cycle?.phase === 'results' ? '/management/results' : null },
-    { label: 'Active staff', value: staff.filter(u => u.is_active).length, to: '/management/users' },
-    { label: 'Categories', value: cycle?.categories?.length ?? 0, to: '/management/cycles' },
+    { label: 'Nominations', icon: 'pen', value: cycle?.nominations_count ?? 0, to: '/management/nominations' },
+    { label: 'Votes cast', icon: 'ballot', value: cycle?.votes_count ?? 0, to: cycle?.phase === 'results' ? '/management/results' : null },
+    { label: 'Active staff', icon: 'users', value: staff.filter(u => u.is_active).length, to: '/management/users' },
+    { label: 'Categories', icon: 'layers', value: cycle?.categories?.length ?? 0, to: '/management/cycles' },
   ];
 
   return (
@@ -115,8 +115,13 @@ export default function ManagementHome() {
             {stats.map(stat => {
               const body = (
                 <>
-                  <dt className="text-sm text-muted">{stat.label}</dt>
-                  <dd className="tabular mt-1 text-3xl font-extrabold">{stat.value}</dd>
+                  <dt className="flex items-center gap-2 text-sm text-muted">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-tint text-brand">
+                      <Icon name={stat.icon} className="h-4 w-4" />
+                    </span>
+                    {stat.label}
+                  </dt>
+                  <dd className="tabular mt-3 font-serif text-4xl font-bold text-brand">{stat.value}</dd>
                 </>
               );
               return stat.to ? (

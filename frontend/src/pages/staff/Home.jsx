@@ -7,9 +7,18 @@ import { PHASE_LABEL, PHASE_TONE } from '../../lib/phases';
 import { PageSkeleton } from '../../components/Skeleton';
 import Badge from '../../components/Badge';
 import Button from '../../components/Button';
-import Card from '../../components/Card';
 import EmptyState from '../../components/EmptyState';
+import Icon from '../../components/Icon';
 import PhaseTrack from '../../components/PhaseTrack';
+
+const CATEGORY_STYLES = [
+  { icon: 'trophy', accent: 'border-l-brand', chip: 'bg-brand text-lime' },
+  { icon: 'star', accent: 'border-l-amber-400', chip: 'bg-amber-50 text-amber-600' },
+  { icon: 'bulb', accent: 'border-l-lime-dark', chip: 'bg-lime-tint text-brand-dark' },
+  { icon: 'handshake', accent: 'border-l-emerald-500', chip: 'bg-emerald-50 text-emerald-700' },
+  { icon: 'target', accent: 'border-l-rose-400', chip: 'bg-rose-50 text-rose-600' },
+  { icon: 'rocket', accent: 'border-l-sky-500', chip: 'bg-sky-50 text-sky-700' },
+];
 
 function NextStep({ cycle, canViewResults }) {
   const { user } = useAuth();
@@ -87,7 +96,7 @@ export default function StaffHome() {
         </div>
       ) : (
         <>
-          <section className="mt-8 overflow-hidden rounded-xl bg-brand-ink p-6 text-white sm:p-8">
+          <section className="mt-8 overflow-hidden rounded-2xl bg-brand p-6 text-white shadow-sm sm:p-8">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-2xl font-bold text-white sm:text-3xl">{cycle.title}</h2>
@@ -109,23 +118,34 @@ export default function StaffHome() {
               <p className="mt-1 text-muted">What each award recognises and how nominees are judged.</p>
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                {cycle.categories.map(category => {
+                {cycle.categories.map((category, idx) => {
                   const points = criteriaList(category.criteria);
+                  const style = CATEGORY_STYLES[idx % CATEGORY_STYLES.length];
                   return (
-                    <Card key={category.id}>
-                      <h3 className="text-base">{category.name}</h3>
-                      {category.description && <p className="mt-1.5 text-sm text-muted">{category.description}</p>}
+                    <article key={category.id} className={`rounded-xl border border-line border-l-4 bg-white p-5 shadow-sm shadow-brand/5 sm:p-6 ${style.accent}`}>
+                      <div className="flex items-start gap-3.5">
+                        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${style.chip}`}>
+                          <Icon name={style.icon} className="h-5 w-5" />
+                        </span>
+                        <div className="min-w-0">
+                          <h3 className="text-base">{category.name}</h3>
+                          {category.description && <p className="mt-1 text-sm text-muted">{category.description}</p>}
+                        </div>
+                      </div>
                       {points.length > 0 && (
-                        <ul className="mt-4 space-y-1.5 border-t border-line pt-4 text-sm">
-                          {points.map((point, i) => (
-                            <li key={i} className="flex gap-2.5">
-                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-lime-dark" />
-                              <span>{point}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="mt-4 rounded-lg bg-canvas px-4 py-3">
+                          <p className="text-xs font-semibold text-brand">Judging criteria</p>
+                          <ul className="mt-1.5 space-y-1 text-sm">
+                            {points.map((point, i) => (
+                              <li key={i} className="flex gap-2.5">
+                                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
+                                <span>{point}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
-                    </Card>
+                    </article>
                   );
                 })}
               </div>

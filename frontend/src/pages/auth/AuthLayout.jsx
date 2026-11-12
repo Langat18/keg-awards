@@ -3,16 +3,19 @@ import { Link } from 'react-router-dom';
 export default function AuthLayout({ title, description, children, footer }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-[1fr_minmax(0,560px)]">
-      <aside className="parapet relative hidden overflow-hidden lg:mt-10 lg:block">
+      <aside className="relative hidden overflow-hidden lg:block">
         <img src="/homepage.jpg" alt="" className="absolute inset-0 h-full w-full object-cover object-[40%_40%]" />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-ink/85 to-transparent p-10 pt-32">
-          <p className="max-w-sm text-2xl font-bold leading-snug text-white">
-            Recognising the people who make KSG Mombasa work.
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-10 pt-32">
+          <p className="font-serif text-lg font-semibold text-lime">Kenya School of Government, Mombasa Campus</p>
+          <div className="my-4 h-[3px] w-12 rounded-full bg-lime" />
+          <p className="max-w-md font-serif text-3xl font-bold leading-snug text-white">
+            Recognising the people who make our campus work.
           </p>
         </div>
       </aside>
 
       <main className="flex flex-col bg-white px-5 py-8 sm:px-12">
+        <div className="-mx-5 -mt-8 mb-8 h-[3px] bg-lime sm:-mx-12" />
         <Link to="/" className="self-start">
           <img src="/ksg-logo.png" alt="Kenya School of Government, back to home" className="h-10 w-auto" />
         </Link>

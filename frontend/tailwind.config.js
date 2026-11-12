@@ -14,12 +14,13 @@ export default {
           dark: '#A8AE00',
           tint: '#F6F8D6',
         },
-        canvas: '#F2F3EF',
-        line: '#DCDDD5',
-        muted: '#6B6A5E',
+        canvas: '#F5F4F1',
+        line: '#E4DFD4',
+        muted: '#6E6656',
       },
       fontFamily: {
         sans: ['"Public Sans Variable"', '"Public Sans"', 'system-ui', 'sans-serif'],
+        serif: ['"Source Serif 4"', 'Georgia', 'serif'],
       },
       borderRadius: {
         DEFAULT: '6px',

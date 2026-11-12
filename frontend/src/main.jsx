@@ -7,6 +7,8 @@ import { ConfirmProvider } from './components/Dialog';
 import ErrorBoundary from './components/ErrorBoundary';
 import { router } from './router';
 import '@fontsource-variable/public-sans';
+import '@fontsource/source-serif-4/600.css';
+import '@fontsource/source-serif-4/700.css';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(

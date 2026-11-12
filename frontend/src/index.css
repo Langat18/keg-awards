@@ -15,6 +15,10 @@
     @apply font-bold tracking-tight text-brand-ink;
   }
 
+  h1 {
+    @apply font-serif font-bold tracking-normal text-brand;
+  }
+
   :focus-visible {
     @apply outline outline-2 outline-offset-2 outline-brand;
   }
@@ -43,16 +47,6 @@
 
   .tabular {
     font-variant-numeric: tabular-nums;
-  }
-
-  .parapet {
-    --merlon: 14px;
-    -webkit-mask:
-      linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--merlon)) no-repeat,
-      linear-gradient(90deg, #000 50%, transparent 0) top left / calc(var(--merlon) * 2) var(--merlon) repeat-x;
-    mask:
-      linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--merlon)) no-repeat,
-      linear-gradient(90deg, #000 50%, transparent 0) top left / calc(var(--merlon) * 2) var(--merlon) repeat-x;
   }
 }
 
