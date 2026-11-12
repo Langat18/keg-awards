@@ -1,118 +1,155 @@
-import { useCycle } from '../../hooks/useCycle';
-import { useNominations } from '../../hooks/useNominations';
+import { useEffect, useMemo, useState } from 'react';
 import { useToast } from '../../components/Toast';
-import { PageSkeleton } from '../../components/Skeleton';
+import { useConfirm } from '../../components/Dialog';
+import { useNominations } from '../../hooks/useNominations';
+import { errorMessage, plural } from '../../lib/format';
+import { PHASE_LABEL } from '../../lib/phases';
+import { PageSkeleton, SkeletonLine } from '../../components/Skeleton';
 import api from '../../api/axios';
+import Avatar from '../../components/Avatar';
+import Button from '../../components/Button';
+import Card from '../../components/Card';
+import EmptyState from '../../components/EmptyState';
+import Icon from '../../components/Icon';
+import PageHeader from '../../components/PageHeader';
+import { Select } from '../../components/Input';
 
 export default function ManageNominations() {
-  const { cycle, loading }       = useCycle();
-  const { nominations, refetch } = useNominations(cycle?.id);
-  const { toast }                = useToast();
+  const { toast } = useToast();
+  const confirm = useConfirm();
+  const [cycles, setCycles] = useState([]);
+  const [cycleId, setCycleId] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+
+  const { nominations, loading: nomsLoading, refetch } = useNominations(cycleId || null);
+
+  useEffect(() => {
+    api.get('/cycles')
+      .then(({ data }) => {
+        setCycles(data);
+        const current = data.find(c => c.phase === 'nominating' || c.phase === 'voting') || data[0];
+        if (current) setCycleId(String(current.id));
+      })
+      .catch(err => toast.error(errorMessage(err, 'Cycles could not be loaded.')))
+      .finally(() => setLoading(false));
+  }, [toast]);
+
+  const cycle = cycles.find(c => String(c.id) === cycleId);
+
+  const grouped = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const matches = n =>
+      !q ||
+      n.nominee?.name.toLowerCase().includes(q) ||
+      (n.nominee?.department || '').toLowerCase().includes(q) ||
+      (n.nominator?.name || '').toLowerCase().includes(q);
+
+    return (cycle?.categories || []).map(category => ({
+      ...category,
+      items: nominations.filter(n => n.category_id === category.id && matches(n)),
+    }));
+  }, [cycle, nominations, query]);
 
   if (loading) return <PageSkeleton />;
 
-  if (!cycle) return (
-    <div className="max-w-5xl mx-auto">
-      <div className="mb-8">
-        <p className="text-xs font-semibold text-[#7F622C] uppercase tracking-widest mb-1">Administration</p>
-        <h2 className="text-2xl font-bold text-gray-900">Nominations</h2>
-      </div>
-      <div className="bg-white rounded-2xl border border-dashed border-gray-200 py-16 text-center">
-        <p className="text-3xl mb-3">📋</p>
-        <p className="text-sm font-semibold text-gray-400">No active cycle</p>
-        <p className="text-xs text-gray-300 mt-1">Open a cycle from the Cycles page to start receiving nominations.</p>
-      </div>
-    </div>
-  );
+  if (!cycles.length) {
+    return (
+      <>
+        <PageHeader title="Nominations" />
+        <EmptyState icon="list" title="No cycles yet" action={<Button to="/management/cycles">Go to cycles</Button>}>
+          Nominations appear here once a cycle is open.
+        </EmptyState>
+      </>
+    );
+  }
 
-  async function remove(id) {
-    if (!confirm('Remove this nomination? This cannot be undone.')) return;
+  async function remove(nomination) {
+    const ok = await confirm({
+      title: `Remove ${nomination.nominee?.name}?`,
+      message:
+        cycle.phase === 'voting'
+          ? `This removes their nomination for ${nomination.category?.name} and deletes any votes already cast for them.`
+          : `This removes their nomination for ${nomination.category?.name}.`,
+      confirmLabel: 'Remove nomination',
+      danger: true,
+    });
+    if (!ok) return;
+
     try {
-      await api.delete(`/nominations/${id}`);
+      await api.delete(`/nominations/${nomination.id}`);
       toast.success('Nomination removed.');
       refetch();
-    } catch {
-      toast.error('Failed to remove nomination.');
+    } catch (err) {
+      toast.error(errorMessage(err, 'The nomination could not be removed.'));
     }
   }
 
-  const byCategory = cycle.categories?.map(cat => ({
-    ...cat,
-    nominees: nominations.filter(n => n.category_id === cat.id),
-  })) || [];
-
   return (
-    <div className="max-w-5xl mx-auto">
+    <div>
+      <PageHeader title="Nominations" description="Review who has been nominated, why and by whom." />
 
-      <div className="mb-8 flex items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold text-[#7F622C] uppercase tracking-widest mb-1">Administration</p>
-          <h2 className="text-2xl font-bold text-gray-900">Nominations</h2>
-          <p className="text-gray-400 text-sm mt-1">{cycle.title}</p>
-        </div>
-        <div className="text-right shrink-0">
-          <p className="text-2xl font-bold text-gray-900">{nominations.length}</p>
-          <p className="text-xs text-gray-400">total nominations</p>
+      <div className="mb-6 grid gap-3 sm:grid-cols-[minmax(0,320px)_1fr] sm:items-end">
+        <Select label="Cycle" value={cycleId} onChange={e => setCycleId(e.target.value)}>
+          {cycles.map(c => (
+            <option key={c.id} value={c.id}>{c.title} ({PHASE_LABEL[c.phase].toLowerCase()})</option>
+          ))}
+        </Select>
+        <div className="relative">
+          <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <input
+            type="search"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search nominee, department or nominator"
+            className="field pl-9"
+            aria-label="Search nominations"
+          />
         </div>
       </div>
 
-      {byCategory.length === 0 && (
-        <div className="bg-white rounded-2xl border border-dashed border-gray-200 py-16 text-center">
-          <p className="text-sm text-gray-300">No categories in this cycle.</p>
+      <p className="mb-4 text-sm text-muted">{plural(nominations.length, 'nomination')} in this cycle</p>
+
+      {nomsLoading ? (
+        <SkeletonLine className="h-48 w-full rounded-xl" />
+      ) : grouped.length === 0 ? (
+        <EmptyState icon="layers" title="This cycle has no categories" compact />
+      ) : (
+        <div className="space-y-5">
+          {grouped.map(category => (
+            <Card key={category.id} padded={false}>
+              <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4 sm:px-6">
+                <h2 className="text-base">{category.name}</h2>
+                <span className="tabular text-sm text-muted">{plural(category.items.length, 'nominee')}</span>
+              </div>
+
+              {category.items.length === 0 ? (
+                <p className="px-5 py-4 text-sm text-muted sm:px-6">{query ? 'No matches.' : 'No nominations yet.'}</p>
+              ) : (
+                <ul className="divide-y divide-line">
+                  {category.items.map(n => (
+                    <li key={n.id} className="flex items-start gap-3 px-5 py-4 sm:px-6">
+                      <Avatar name={n.nominee?.name} />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold">{n.nominee?.name}</p>
+                        <p className="text-sm text-muted">
+                          {[n.nominee?.department, n.nominator && (n.nominator.id === n.nominee_id ? 'Self-nominated' : `Nominated by ${n.nominator.name}`)]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </p>
+                        {n.reason && <p className="mt-2 max-w-2xl whitespace-pre-line border-l-2 border-lime pl-3 text-sm">{n.reason}</p>}
+                      </div>
+                      {cycle.phase !== 'results' && (
+                        <Button size="sm" variant="danger-outline" onClick={() => remove(n)}>Remove</Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          ))}
         </div>
       )}
-
-      <div className="space-y-5">
-        {byCategory.map(cat => (
-          <div key={cat.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-
-            <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
-              <h4 className="font-bold text-gray-900">{cat.name}</h4>
-              <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-2.5 py-1">
-                {cat.nominees.length} nominee{cat.nominees.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-
-            <div className="px-6 py-4">
-              {cat.nominees.length === 0 ? (
-                <p className="text-xs text-gray-300 italic py-2">No nominations yet.</p>
-              ) : (
-                <div className="divide-y divide-gray-50">
-                  {cat.nominees.map(n => (
-                    <div key={n.id} className="py-3.5 flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-[#7F622C]/10 text-[#7F622C] text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                          {(n.nominee?.name || '?').split(' ').map(x => x[0]).slice(0, 2).join('').toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-800">{n.nominee?.name}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            {n.nominee?.department}
-                            {n.nominator?.name && (
-                              <> · Nominated by <span className="font-medium text-gray-500">{n.nominator.name}</span></>
-                            )}
-                          </p>
-                          {n.reason && (
-                            <p className="text-xs text-gray-400 mt-1.5 italic line-clamp-2">
-                              "{n.reason}"
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => remove(n.id)}
-                        className="shrink-0 text-xs font-medium text-red-400 hover:text-red-600 border border-red-100 hover:border-red-300 hover:bg-red-50 rounded-lg px-3 py-1.5 transition-colors"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

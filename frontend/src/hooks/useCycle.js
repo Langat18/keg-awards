@@ -1,23 +1,28 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../api/axios';
 
 export function useCycle() {
-  const [cycle, setCycle]     = useState(null);
+  const [cycle, setCycle] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
-  const fetch = useCallback(() => {
+  const load = useCallback(() => {
     setLoading(true);
-    api.get('/cycles/active')
-      .then(r => { setCycle(r.data); setError(null); })
+    return api.get('/cycles/active')
+      .then(({ data }) => {
+        setCycle(data);
+        setError(null);
+      })
       .catch(err => {
         setCycle(null);
-        setError(err.response?.data?.message || 'Failed to load cycle.');
+        setError(err.response?.status === 404 ? null : 'The awards cycle could not be loaded.');
       })
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  return { cycle, loading, error, refetch: fetch };
+  return { cycle, loading, error, refetch: load };
 }

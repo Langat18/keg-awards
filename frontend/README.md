@@ -1,62 +1,33 @@
-# KSG Awards — Frontend
+# KSG Awards Web App
 
-React frontend for the Kenya School of Government staff rewards and recognition system. Staff nominate and vote on award categories across a cycle (nominations → voting → results); admins manage cycles, categories, and user access from a separate management area.
+React front end for the staff rewards and recognition system.
 
-## Stack
-
-- React 19 + Vite
-- React Router
-- Tailwind CSS
-- Axios
-
-## Local development
+## Development
 
 ```bash
+cp .env.example .env   # VITE_API_URL=http://localhost:8001/api
 npm install
 npm run dev
 ```
 
-The dev server reads `VITE_API_URL` from `.env` (or `.env.local`). Point it at your local backend:
-
-```
-VITE_API_URL=http://localhost:8001/api
-```
-
 ## Build
 
+`VITE_API_URL` is compiled into the bundle, so it must be set at build time.
+
 ```bash
-npm run build
+docker build --build-arg VITE_API_URL=https://your-api.onrender.com/api -t ksg-awards-frontend .
+docker run -p 8080:10000 ksg-awards-frontend
 ```
 
-Output goes to `dist/`. `VITE_API_URL` is baked into the build at this step — it is not read at runtime, so changing it requires a rebuild.
+## Layout
 
-## Project structure
-
-```
-src/
-  pages/
-    guest/        Landing page
-    staff/         Staff-facing pages (home, nominate, vote, results)
-    management/    Admin-facing pages (cycles, nominations, results, users)
-  components/      Shared UI components
-  hooks/           Data-fetching hooks (cycle, nominations, users)
-  store/           Auth context
-  api/             Axios instance and interceptors
-```
-
-Staff and admin areas use separate layouts (`StaffLayout`, `ManagementLayout`) and route trees, gated by the user's role from the auth context.
-
-## Environment variables
-
-| Variable | Description |
+| Path | Contents |
 |---|---|
-| `VITE_API_URL` | Base URL of the backend API, including the `/api` suffix |
+| `src/pages/guest`, `src/pages/auth` | Landing page, sign in, registration |
+| `src/pages/staff` | Home, nominate, vote, results |
+| `src/pages/management` | Overview, cycles, nominations, results, staff accounts |
+| `src/components` | Shared interface pieces: shell, buttons, inputs, dialogs, results board |
+| `src/hooks` | Data loading for the active cycle, nominations, votes and staff |
+| `src/lib` | Formatting helpers, phase labels and the results spreadsheet export |
 
-## Deployment
-
-Deployed to Render as a Docker web service. The Dockerfile builds the app with Vite and serves the static output with `serve`. See the root-level `render.yaml` and `DEPLOYMENT.md` for the full deployment process, including required environment variables and first-time setup steps.
-
-## Notes
-
-- Authentication uses Bearer tokens (Sanctum) stored in `localStorage`; the axios interceptor attaches the token to every request and redirects to `/login` on a 401.
-- Results visibility is gated per-user via a `can_view_results` flag, separate from admin status — staff without explicit access do not see the Results page or card on their dashboard.
+The Excel export library is loaded only when someone downloads a spreadsheet, which keeps the main bundle small.

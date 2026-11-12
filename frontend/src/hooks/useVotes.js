@@ -1,27 +1,29 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../api/axios';
 
 export function useVotes(cycleId) {
   const [myVotes, setMyVotes] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(cycleId));
 
-  const fetch = useCallback(() => {
-    if (!cycleId) return;
+  const load = useCallback(() => {
+    if (!cycleId) return Promise.resolve();
     setLoading(true);
-    api.get(`/cycles/${cycleId}/my-votes`)
-      .then(r => setMyVotes(r.data))
+    return api.get(`/cycles/${cycleId}/my-votes`)
+      .then(({ data }) => setMyVotes(data))
       .catch(() => setMyVotes([]))
       .finally(() => setLoading(false));
   }, [cycleId]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const updateLocal = (categoryId, nominationId) => {
-    setMyVotes(v => [
-      ...v.filter(x => x.category_id !== categoryId),
+  const recordVote = useCallback((categoryId, nominationId) => {
+    setMyVotes(votes => [
+      ...votes.filter(v => v.category_id !== categoryId),
       { category_id: categoryId, nomination_id: nominationId },
     ]);
-  };
+  }, []);
 
-  return { myVotes, loading, updateLocal, refetch: fetch };
+  return { myVotes, loading, recordVote, refetch: load };
 }

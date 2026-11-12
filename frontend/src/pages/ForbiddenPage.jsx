@@ -1,17 +1,17 @@
-import { Link } from 'react-router-dom';
+import { useAuth } from '../store/AuthContext';
+import Button from '../components/Button';
 
 export default function ForbiddenPage() {
+  const { user, homePath } = useAuth();
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f4f1] px-4">
-      <div className="text-center">
-        <p className="text-6xl font-black text-[#CBD300]">403</p>
-        <h1 className="text-xl font-bold text-[#7F622C] mt-2">Access Forbidden</h1>
-        <p className="text-gray-500 text-sm mt-1">You do not have permission to view this page.</p>
-        <Link to="/staff" className="inline-block mt-6 bg-[#7F622C] text-white text-sm px-5 py-2.5 rounded-lg hover:bg-[#5c4620] transition-colors">
-          Back to Staff Home
-        </Link>
+    <main className="flex min-h-screen items-center justify-center px-6">
+      <div className="max-w-md text-center">
+        <p className="tabular text-6xl font-extrabold text-brand">403</p>
+        <h1 className="mt-3 text-2xl">You do not have access to this page</h1>
+        <p className="mt-2 text-muted">This area is for administrators. If you need access, contact the ICT office.</p>
+        <Button to={user ? homePath : '/login'} className="mt-6">Back to your dashboard</Button>
       </div>
-    </div>
+    </main>
   );
 }
-

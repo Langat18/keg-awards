@@ -1,152 +1,84 @@
-import { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../store/AuthContext';
+import { Link } from 'react-router-dom';
+import Button from '../../components/Button';
 
-const FEATURES = [
+const STEPS = [
   {
-    n:     '01',
-    title: 'Peer Nominations',
-    desc:  'Staff nominate themselves or colleagues across defined award categories, with clear judging criteria for each.',
+    title: 'Nominate',
+    text: 'Put forward a colleague, or yourself, in any award category. Each category lists what the judges look for.',
   },
   {
-    n:     '02',
-    title: 'Transparent Voting',
-    desc:  'Every nominee is visible to all staff. One vote per category keeps the process simple and fair.',
+    title: 'Vote',
+    text: 'Every nominee is listed for all staff to see. You get one vote per category and can change it until voting closes.',
+  },
+  {
+    title: 'Celebrate',
+    text: 'Votes are counted automatically and the winners in each category are announced when results are published.',
   },
 ];
 
 export default function Landing() {
-  const { user }  = useAuth();
-  const navigate  = useNavigate();
-
-  useEffect(() => {
-    if (user) navigate(user.role === 'admin' ? '/management' : '/staff', { replace: true });
-  }, [user, navigate]);
-
   return (
-    <div className="min-h-screen bg-ksg-bg flex flex-col">
-
-      <header className="bg-ksg-bg sticky top-0 z-40 border-b border-ksg-brown/10">
-        <div className="max-w-6xl mx-auto px-6 h-[72px] flex items-center justify-between">
-          <Link to="/" className="bg-white rounded-lg shadow-sm border border-ksg-brown/10 px-3 py-1.5">
-            <img src="/ksg-logo.png" alt="Kenya School of Government" className="h-9 w-auto" />
+    <div className="flex min-h-screen flex-col bg-white">
+      <header className="border-b border-line">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:h-20 sm:px-6">
+          <Link to="/">
+            <img src="/ksg-logo.png" alt="Kenya School of Government" className="h-9 w-auto sm:h-11" />
           </Link>
-          <div className="hidden sm:flex items-center gap-2">
-            <Link
-              to="/login"
-              className="text-sm font-semibold  bg-ksg-brown text-white px-5 py-2.5 rounded-md hover:bg-ksg-brownDk transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/register"
-              className="text-sm font-semibold bg-ksg-brown text-white px-5 py-2.5 rounded-md hover:bg-ksg-brownDk transition-colors"
-            >
-              Create Account
-            </Link>
+          <div className="flex items-center gap-2">
+            <Button to="/login" variant="ghost" size="sm" className="sm:h-10 sm:px-4 sm:text-sm">Sign in</Button>
+            <Button to="/register" size="sm" className="sm:h-10 sm:px-4 sm:text-sm">Create account</Button>
           </div>
         </div>
       </header>
 
-       <section className="relative overflow-hidden border-b border-ksg-brown/10">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: 'url(/homepage.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
-        <div className="absolute inset-0 bg-black/55" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/5" />
- 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 py-32 sm:py-40 text-center">
-          <h3 className="font-serif text-[2.75rem] sm:text-4xl text-ksg-lime mb-6">
-            Kenya School of Government
-          </h3>
-          <h3 className="font-serif text-[2.75rem] sm:text-4xl text-ksg-lime mb-6">
-            Mombasa Campus
-          </h3>
- 
-          <h1 className="font-serif text-[2.75rem] sm:text-5xl font-bold text-white leading-[1.08] mb-6">
-            Staff Rewards &amp;<br />Recognition System
-          </h1>
- 
-          <div className="w-14 h-[3px] bg-ksg-lime mx-auto mb-6" />
- 
-          <p className="text-white/85 text-lg leading-relaxed max-w-xl mx-auto mb-12">
-            A staff-driven platform for nominating, voting and celebrating
-            outstanding colleagues
-          </p>
- 
-          {/*<div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              to="/register"
-              className="bg-ksg-lime text-gray-900 font-bold px-8 py-3.5 rounded-md hover:bg-ksg-limeDk transition-colors text-sm"
-            >
-              Create Account
-            </Link>
-            <Link
-              to="/login"
-              className="bg-white/10 border border-white/30 text-white font-semibold px-8 py-3.5 rounded-md hover:bg-white/20 transition-colors text-sm backdrop-blur-sm"
-            >
-              Sign In
-            </Link>
-          </div>*/}
-        </div>
-      </section>
- 
-      <section className="bg-ksg-bg py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="max-w-xl mb-16">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-ksg-brown mb-3">
-              How it works
+      <main className="flex-1">
+        <section className="mx-auto grid max-w-6xl items-end gap-10 px-4 pb-0 pt-12 sm:px-6 sm:pt-16 lg:grid-cols-[1fr_1.15fr] lg:gap-14">
+          <div className="pb-4 lg:pb-16">
+            <p className="text-sm font-semibold text-brand">Kenya School of Government, Mombasa Campus</p>
+            <h1 className="mt-4 text-[40px] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[56px]">
+              Staff Rewards and Recognition
+            </h1>
+            <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">
+              Nominate the colleagues who make a difference, vote in each award category and see who the campus chose.
             </p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
-              Built on fairness and transparency
-            </h2>
-            <div className="w-14 h-[3px] bg-ksg-lime mt-6" />
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button to="/register" size="lg">Create your account</Button>
+              <Button to="/login" size="lg" variant="secondary">Sign in</Button>
+            </div>
+            <p className="mt-4 text-sm text-muted">Use your @ksg.ac.ke email address to register.</p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-px bg-ksg-brown/10 rounded-xl overflow-hidden border border-ksg-brown/10">
-            {FEATURES.map(f => (
-              <div key={f.n} className="bg-ksg-bg p-10">
-                <p className="font-serif text-sm font-bold text-ksg-brown/40 mb-4">{f.n}</p>
-                <h3 className="font-serif text-xl font-bold text-gray-900 mb-3">{f.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed max-w-md">{f.desc}</p>
-              </div>
-            ))}
+          <div className="parapet relative h-64 overflow-hidden rounded-b-none sm:h-80 lg:h-[440px]">
+            <img
+              src="/homepage.jpg"
+              alt="The KSG Mombasa campus building"
+              className="absolute inset-0 h-full w-full object-cover object-[50%_35%]"
+            />
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="bg-ksg-brown py-20 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white mb-4">
-            Ready to take part?
-          </h2>
-          <p className="text-white/70 text-sm leading-relaxed mb-8 max-w-md mx-auto">
-            Register with your email to nominate colleagues and cast
-            your vote in the current awards cycle.
-          </p>
-          <Link
-            to="/register"
-            className="inline-block bg-ksg-lime text-gray-900 font-bold px-8 py-3.5 rounded-md hover:bg-ksg-limeDk transition-colors text-sm"
-          >
-            Create Your Account
-          </Link>
-        </div>
-      </section>
+        <section className="bg-brand-ink text-white">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+            <h2 className="max-w-lg text-2xl font-bold text-white sm:text-3xl">How an awards cycle runs</h2>
+            <ol className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-6">
+              {STEPS.map((step, i) => (
+                <li key={step.title} className="border-t-[3px] border-white/15 pt-5 first:border-lime">
+                  <p className="text-sm font-semibold text-lime">Stage {i + 1}</p>
+                  <h3 className="mt-1 text-xl font-bold text-white">{step.title}</h3>
+                  <p className="mt-2 max-w-sm leading-relaxed text-white/70">{step.text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      </main>
 
-      <footer className="bg-ksg-bg border-t border-ksg-brown/10 py-7 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} Kenya School of Government. All rights reserved.
-          </p>
-          <p className="text-xs text-gray-500 font-medium">Empowering the Public Service</p>
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-6 text-sm text-muted sm:flex-row sm:justify-between sm:px-6">
+          <p>&copy; {new Date().getFullYear()} Kenya School of Government</p>
+          <p>Empowering the Public Service</p>
         </div>
       </footer>
-
     </div>
   );
 }

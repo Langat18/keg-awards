@@ -12,7 +12,7 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate([
-            'name'       => 'required|string|max:150',
+            'name' => 'required|string|max:150',
             'department' => 'nullable|string|max:150',
         ]);
 
@@ -23,21 +23,26 @@ class ProfileController extends Controller
 
     public function changePassword(Request $request)
     {
+        $user = $request->user();
+        $minimum = $user->isAdmin() ? 12 : 8;
+
         $data = $request->validate([
-            'current_password' => 'required',
-            'password'         => 'required|string|min:8|confirmed',
+            'current_password' => 'required|string',
+            'password' => "required|string|min:{$minimum}|confirmed|different:current_password",
+        ], [
+            'password.different' => 'The new password must be different from the current one.',
         ]);
 
-        if (! Hash::check($data['current_password'], $request->user()->password)) {
+        if (! Hash::check($data['current_password'], $user->password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['Current password is incorrect.'],
             ]);
         }
 
-        $request->user()->update([
-            'password' => Hash::make($data['password']),
-        ]);
+        $user->update(['password' => $data['password']]);
 
-        return response()->json(['message' => 'Password changed successfully.']);
+        $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
+
+        return response()->json(['message' => 'Password changed. Other devices have been signed out.']);
     }
 }

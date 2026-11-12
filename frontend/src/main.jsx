@@ -3,8 +3,10 @@ import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './store/AuthContext';
 import { ToastProvider } from './components/Toast';
+import { ConfirmProvider } from './components/Dialog';
 import ErrorBoundary from './components/ErrorBoundary';
 import { router } from './router';
+import '@fontsource-variable/public-sans';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -12,7 +14,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ErrorBoundary>
       <AuthProvider>
         <ToastProvider>
-          <RouterProvider router={router} />
+          <ConfirmProvider>
+            <RouterProvider router={router} />
+          </ConfirmProvider>
         </ToastProvider>
       </AuthProvider>
     </ErrorBoundary>

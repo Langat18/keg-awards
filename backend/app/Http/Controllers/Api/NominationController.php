@@ -1,25 +1,37 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Cycle;
 use App\Models\Nomination;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class NominationController extends Controller
 {
-    // All nominations for this cycle, with nominee & category info
-    public function index(Cycle $cycle)
+    public function index(Request $request, Cycle $cycle)
     {
-        return response()->json(
-            $cycle->nominations()
-                ->with([
-                    'nominee:id,name,department',
-                    'nominator:id,name',
-                    'category:id,name',
-                ])
-                ->get()
-        );
+        $user = $request->user();
+
+        $relations = ['nominee:id,name,department', 'category:id,name'];
+
+        if ($user->isAdmin()) {
+            $relations[] = 'nominator:id,name';
+        }
+
+        $nominations = $cycle->nominations()->with($relations)->orderBy('id')->get();
+
+        if (! $user->isAdmin()) {
+            $nominations->each(function (Nomination $nomination) use ($user) {
+                if ($nomination->nominated_by !== $user->id) {
+                    $nomination->makeHidden(['reason', 'nominated_by']);
+                }
+            });
+        }
+
+        return response()->json($nominations);
     }
 
     public function store(Request $request, Cycle $cycle)
@@ -29,34 +41,38 @@ class NominationController extends Controller
         }
 
         $data = $request->validate([
-            'category_id' => 'required|integer|exists:categories,id',
-            'nominee_id'  => 'required|integer|exists:users,id',
-            'reason'      => 'nullable|string|max:600',
+            'category_id' => 'required|integer',
+            'nominee_id' => 'required|integer',
+            'reason' => 'nullable|string|max:600',
         ]);
 
-        // Category must belong to this cycle
-        if (! $cycle->categories()->where('id', $data['category_id'])->exists()) {
-            return response()->json(['message' => 'Category does not belong to this cycle.'], 422);
+        if (! $cycle->categories()->whereKey($data['category_id'])->exists()) {
+            return response()->json(['message' => 'That category is not part of this cycle.'], 422);
         }
 
-        // Duplicate guard (database constraint backs this up too)
+        $nominee = User::whereKey($data['nominee_id'])->where('is_active', true)->first();
+
+        if (! $nominee) {
+            return response()->json(['message' => 'That staff member could not be found.'], 422);
+        }
+
         $exists = Nomination::where([
-            'cycle_id'    => $cycle->id,
+            'cycle_id' => $cycle->id,
             'category_id' => $data['category_id'],
-            'nominee_id'  => $data['nominee_id'],
+            'nominee_id' => $nominee->id,
         ])->exists();
 
         if ($exists) {
-            return response()->json(['message' => 'This person is already nominated in that category.'], 422);
+            return response()->json(['message' => "{$nominee->name} is already nominated in this category."], 422);
         }
 
         $nomination = Nomination::create([
-            'cycle_id'     => $cycle->id,
-            'category_id'  => $data['category_id'],
-            'nominee_id'   => $data['nominee_id'],
+            'cycle_id' => $cycle->id,
+            'category_id' => $data['category_id'],
+            'nominee_id' => $nominee->id,
             'nominated_by' => $request->user()->id,
-            'reason'       => $data['reason'] ?? null,
-            'created_at'   => now(),
+            'reason' => $data['reason'] ?? null,
+            'created_at' => now(),
         ]);
 
         return response()->json(
@@ -65,12 +81,19 @@ class NominationController extends Controller
         );
     }
 
-    // Admin: remove a nomination
-    public function destroy(Nomination $nomination)
+    public function destroy(Request $request, Nomination $nomination)
     {
+        $nomination->loadMissing('nominee:id,name', 'category:id,name');
+
+        AuditLog::record(
+            $request->user(),
+            'nomination_removed',
+            $nomination,
+            "Removed {$nomination->nominee?->name} from {$nomination->category?->name}",
+        );
+
         $nomination->delete();
 
         return response()->json(['message' => 'Nomination removed.']);
     }
 }
-

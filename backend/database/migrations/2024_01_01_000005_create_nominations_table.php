@@ -15,7 +15,6 @@ return new class extends Migration {
             $table->text('reason')->nullable();
             $table->timestamp('created_at')->useCurrent();
 
-            // One nomination per nominee per category per cycle
             $table->unique(['cycle_id', 'category_id', 'nominee_id']);
         });
 

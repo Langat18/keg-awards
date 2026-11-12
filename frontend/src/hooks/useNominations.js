@@ -1,20 +1,22 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../api/axios';
 
 export function useNominations(cycleId) {
   const [nominations, setNominations] = useState([]);
-  const [loading, setLoading]         = useState(false);
+  const [loading, setLoading] = useState(Boolean(cycleId));
 
-  const fetch = useCallback(() => {
-    if (!cycleId) return;
+  const load = useCallback(() => {
+    if (!cycleId) return Promise.resolve();
     setLoading(true);
-    api.get(`/cycles/${cycleId}/nominations`)
-      .then(r => setNominations(r.data))
+    return api.get(`/cycles/${cycleId}/nominations`)
+      .then(({ data }) => setNominations(data))
       .catch(() => setNominations([]))
       .finally(() => setLoading(false));
   }, [cycleId]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  return { nominations, loading, refetch: fetch };
+  return { nominations, loading, refetch: load };
 }

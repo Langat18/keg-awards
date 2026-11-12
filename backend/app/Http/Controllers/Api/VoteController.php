@@ -16,8 +16,8 @@ class VoteController extends Controller
         }
 
         $data = $request->validate([
-            'category_id'   => 'required|integer|exists:categories,id',
-            'nomination_id' => 'required|integer|exists:nominations,id',
+            'category_id'   => 'required|integer',
+            'nomination_id' => 'required|integer',
         ]);
 
         $nomination = Nomination::where([
@@ -27,12 +27,8 @@ class VoteController extends Controller
         ])->first();
 
         if (! $nomination) {
-            return response()->json(['message' => 'Invalid nomination for this cycle/category.'], 422);
+            return response()->json(['message' => 'That nominee is not part of this category.'], 422);
         }
-
-        // if ($nomination->nominee_id === $request->user()->id) {
-        //     return response()->json(['message' => 'You cannot vote for yourself.'], 422);
-        // }
 
         $vote = Vote::updateOrCreate(
             [
