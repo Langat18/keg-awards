@@ -22,6 +22,8 @@ const ManageCycles = lazy(() => import('../pages/management/Cycles'));
 const ManageNominations = lazy(() => import('../pages/management/Nominations'));
 const ManageResults = lazy(() => import('../pages/management/Results'));
 const ManageUsers = lazy(() => import('../pages/management/Users'));
+const ManageStaff = lazy(() => import('../pages/management/Staff'));
+const SetPassword = lazy(() => import('../pages/auth/SetPassword'));
 
 function page(Component) {
   return (
@@ -33,14 +35,24 @@ function page(Component) {
 
 function RequireAuth({ children }) {
   const { user } = useAuth();
-  return user ? children : <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.must_change_password) return <Navigate to="/set-password" replace />;
+  return children;
 }
 
 function RequireAdmin({ children }) {
   const { user, isAdmin } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
+  if (user.must_change_password) return <Navigate to="/set-password" replace />;
   if (!isAdmin) return <Navigate to="/forbidden" replace />;
   return children;
+}
+
+function PasswordChange() {
+  const { user, homePath } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  if (!user.must_change_password) return <Navigate to={homePath} replace />;
+  return page(SetPassword);
 }
 
 function GuestOnly({ children }) {
@@ -52,6 +64,7 @@ export const router = createBrowserRouter([
   { path: '/', element: <GuestOnly><Landing /></GuestOnly> },
   { path: '/login', element: <GuestOnly><Login /></GuestOnly> },
   { path: '/register', element: <GuestOnly><Register /></GuestOnly> },
+  { path: '/set-password', element: <PasswordChange /> },
   { path: '/forbidden', element: <ForbiddenPage /> },
   {
     path: '/staff',
@@ -72,6 +85,7 @@ export const router = createBrowserRouter([
       { path: 'cycles', element: page(ManageCycles) },
       { path: 'nominations', element: page(ManageNominations) },
       { path: 'results', element: page(ManageResults) },
+      { path: 'staff', element: page(ManageStaff) },
       { path: 'users', element: page(ManageUsers) },
       { path: 'profile', element: page(Profile) },
     ],

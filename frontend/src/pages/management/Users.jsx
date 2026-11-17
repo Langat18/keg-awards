@@ -10,6 +10,7 @@ import Button from '../../components/Button';
 import EmptyState from '../../components/EmptyState';
 import Icon from '../../components/Icon';
 import PageHeader from '../../components/PageHeader';
+import CredentialsDialog from './CredentialsDialog';
 
 const FILTERS = [
   { key: 'all', label: 'Everyone', test: () => true },
@@ -42,6 +43,7 @@ export default function ManageUsers() {
   const [busy, setBusy] = useState({});
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  const [credentials, setCredentials] = useState(null);
 
   useEffect(() => {
     api.get('/admin/users')
@@ -55,7 +57,7 @@ export default function ManageUsers() {
     const test = FILTERS.find(f => f.key === filter).test;
     return users.filter(u =>
       test(u) &&
-      (!q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.department || '').toLowerCase().includes(q))
+      (!q || [u.name, u.email, u.login_id, u.department].some(v => (v || '').toLowerCase().includes(q)))
     );
   }, [users, search, filter]);
 
@@ -102,6 +104,21 @@ export default function ManageUsers() {
     });
   }
 
+  async function resetPassword(user) {
+    const ok = await confirm({
+      title: `Reset the password for ${user.name}?`,
+      message: 'They are signed out everywhere and get a temporary password, which they must change when they next sign in.',
+      confirmLabel: 'Reset password',
+    });
+    if (!ok) return;
+
+    withBusy(user.id, async () => {
+      const { data } = await api.post(`/admin/users/${user.id}/reset-password`);
+      patch(user.id, { must_change_password: true, login_id: data.credentials[0].login_id });
+      setCredentials(data.credentials);
+    });
+  }
+
   async function remove(user) {
     const ok = await confirm({
       title: `Delete ${user.name}?`,
@@ -145,7 +162,7 @@ export default function ManageUsers() {
           <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
             type="search"
-            placeholder="Search name, email or department"
+            placeholder="Search name, email, ID or department"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="field pl-9"
@@ -181,13 +198,22 @@ export default function ManageUsers() {
                             {u.name}
                             {admin && <Badge tone="done" className="ml-2 align-middle">Admin</Badge>}
                           </p>
-                          <p className="truncate text-muted">{u.email}</p>
+                          <p className="truncate text-muted">
+                            {u.email || <span className="font-mono">{u.login_id}</span>}
+                            {u.email && u.login_id && <span className="font-mono">, {u.login_id}</span>}
+                          </p>
                         </div>
                       </div>
                     </td>
                     <td className="hidden text-muted md:table-cell md:px-5">{u.department || '-'}</td>
                     <td className="md:table-cell md:px-5">
-                      {u.is_active ? <Badge tone="good" dot>Active</Badge> : <Badge tone="bad" dot>Deactivated</Badge>}
+                      {!u.is_active ? (
+                        <Badge tone="bad" dot>Deactivated</Badge>
+                      ) : u.must_change_password ? (
+                        <Badge tone="live" dot>Temporary password</Badge>
+                      ) : (
+                        <Badge tone="good" dot>Active</Badge>
+                      )}
                     </td>
                     <td className="flex items-center gap-2 md:table-cell md:px-5">
                       {admin ? (
@@ -202,6 +228,9 @@ export default function ManageUsers() {
                     <td className="ml-auto md:table-cell md:px-5 md:text-right">
                       {!admin && (
                         <div className="flex justify-end gap-2">
+                          {u.is_active && (
+                            <Button size="sm" variant="ghost" icon="key" onClick={() => resetPassword(u)} disabled={busy[u.id]}>Reset password</Button>
+                          )}
                           <Button size="sm" variant="secondary" onClick={() => toggleActive(u)} disabled={busy[u.id]}>
                             {u.is_active ? 'Deactivate' : 'Reactivate'}
                           </Button>
@@ -220,6 +249,12 @@ export default function ManageUsers() {
       )}
 
       <p className="mt-3 text-right text-sm text-muted">Showing {visible.length} of {plural(users.length, 'account')}</p>
+
+      <CredentialsDialog
+        credentials={credentials}
+        title={`New temporary password for ${credentials?.[0]?.name}`}
+        onClose={() => setCredentials(null)}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CycleController;
 use App\Http\Controllers\Api\NominationController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ResultController;
+use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\VoteController;
 use Illuminate\Support\Facades\Route;
@@ -18,8 +19,11 @@ Route::middleware('throttle:auth')->group(function () {
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
-    Route::patch('/auth/profile', [ProfileController::class, 'update']);
     Route::patch('/auth/password', [ProfileController::class, 'changePassword']);
+});
+
+Route::middleware(['auth:sanctum', 'active', 'password.changed'])->group(function () {
+    Route::patch('/auth/profile', [ProfileController::class, 'update']);
 
     Route::get('/cycles/active', [CycleController::class, 'active']);
     Route::get('/cycles/active-with-results', [CycleController::class, 'activeWithResults']);
@@ -54,6 +58,16 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/admin/users', [UserController::class, 'adminIndex']);
         Route::patch('/admin/users/{user}/toggle', [UserController::class, 'toggleActive']);
         Route::patch('/admin/users/{user}/toggle-results', [UserController::class, 'toggleResultsAccess']);
+        Route::post('/admin/users/{user}/reset-password', [UserController::class, 'resetPassword']);
         Route::delete('/admin/users/{user}', [UserController::class, 'destroy']);
+
+        Route::get('/admin/staff', [StaffController::class, 'index']);
+        Route::post('/admin/staff', [StaffController::class, 'store']);
+        Route::post('/admin/staff/preview', [StaffController::class, 'preview']);
+        Route::post('/admin/staff/import', [StaffController::class, 'import']);
+        Route::post('/admin/staff/accounts', [StaffController::class, 'createAccounts']);
+        Route::put('/admin/staff/{staff}', [StaffController::class, 'update']);
+        Route::patch('/admin/staff/{staff}/left', [StaffController::class, 'toggleLeft']);
+        Route::delete('/admin/staff/{staff}', [StaffController::class, 'destroy']);
     });
 });

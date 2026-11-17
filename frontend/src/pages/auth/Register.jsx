@@ -70,11 +70,11 @@ export default function Register() {
       <form onSubmit={submit} className="space-y-5" noValidate>
         <Input label="Full name" autoComplete="name" placeholder="e.g. Jane Mwangi" required {...bind('name')} />
         <Input
-          label="KSG email address"
+          label="Email address"
           type="email"
           autoComplete="email"
           placeholder="firstname.lastname@ksg.ac.ke"
-          hint="Only @ksg.ac.ke addresses can register."
+          hint="Your KSG email, or the email HR has on record for you. No email? Ask the administrator for a sign-in slip."
           required
           {...bind('email')}
         />

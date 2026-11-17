@@ -101,6 +101,10 @@ return [
 
     'setup_token' => env('ADMIN_SETUP_TOKEN'),
 
+    'registration' => [
+        'allow_ksg_domain' => (bool) env('REGISTRATION_ALLOW_KSG_DOMAIN', true),
+    ],
+
     'admin' => [
         'email' => env('ADMIN_EMAIL', 'system.admin@ksg.ac.ke'),
         'password' => env('ADMIN_PASSWORD'),

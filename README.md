@@ -47,3 +47,14 @@ php artisan admin:password
 ```
 
 The command asks for the new password, re-enables the account and signs out every existing session.
+
+## Who can take part
+
+The **Staff list** page in the administration area holds everyone eligible to take part. Import it from HR as an Excel (.xlsx) or CSV file with the columns Name, Department, Email and PF number. Only the name is required. Re-importing a file matches people by email or PF number and updates them, and the import shows every change for review before anything is saved.
+
+- **Staff with an email on the list** register themselves with that email, whether it is a KSG address or a personal one.
+- **Staff without an email** get an account created by the administrator. Each person receives a sign-in ID (for example `KSG-0042`) and a temporary password, which can be printed as slips or downloaded as a sheet. They choose their own password the first time they sign in.
+- Anyone can sign in with their email, their sign-in ID, or their PF number if one is recorded.
+- Marking someone as having left deactivates their account. Each person on the list can hold only one account.
+
+By default, a `@ksg.ac.ke` address that is not on the list can still register and is added to the list automatically. Set `REGISTRATION_ALLOW_KSG_DOMAIN=false` to allow only people on the list.

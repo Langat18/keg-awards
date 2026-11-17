@@ -8,7 +8,10 @@ export default function Dialog({ open, title, onClose, children, footer, size = 
     if (!open) return;
 
     const previous = document.activeElement;
-    const onKey = e => e.key === 'Escape' && onClose?.();
+    const onKey = e => {
+      const dialogs = document.querySelectorAll('[role="dialog"]');
+      if (e.key === 'Escape' && dialogs[dialogs.length - 1] === panelRef.current) onClose?.();
+    };
 
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';

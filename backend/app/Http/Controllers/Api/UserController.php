@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Nomination;
+use App\Models\StaffMember;
 use App\Models\User;
 use App\Models\Vote;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class UserController extends Controller
 
     public function adminIndex()
     {
-        return User::select('id', 'name', 'email', 'department', 'role', 'is_active', 'can_view_results', 'created_at')
+        return User::select('id', 'name', 'email', 'login_id', 'department', 'role', 'is_active', 'can_view_results', 'must_change_password', 'created_at')
             ->orderBy('name')
             ->get();
     }
@@ -39,7 +40,7 @@ class UserController extends Controller
             $user->tokens()->delete();
         }
 
-        AuditLog::record($request->user(), $user->is_active ? 'user_activated' : 'user_deactivated', $user, $user->email);
+        AuditLog::record($request->user(), $user->is_active ? 'user_activated' : 'user_deactivated', $user, $this->label($user));
 
         return response()->json($user->only('id', 'name', 'is_active', 'can_view_results', 'role'));
     }
@@ -56,7 +57,7 @@ class UserController extends Controller
             $request->user(),
             $user->can_view_results ? 'results_access_granted' : 'results_access_revoked',
             $user,
-            $user->email,
+            $this->label($user),
         );
 
         return response()->json($user->only('id', 'name', 'can_view_results', 'role'));
@@ -77,11 +78,43 @@ class UserController extends Controller
             ], 422);
         }
 
-        AuditLog::record($request->user(), 'user_deleted', $user, $user->email);
+        AuditLog::record($request->user(), 'user_deleted', $user, $this->label($user));
 
         $user->tokens()->delete();
         $user->delete();
 
         return response()->json(['message' => 'User deleted.']);
+    }
+
+    public function resetPassword(Request $request, User $user)
+    {
+        if ($user->isAdmin()) {
+            return response()->json(['message' => 'Administrators change their password from their profile or with `php artisan admin:password`.'], 422);
+        }
+
+        $password = StaffMember::temporaryPassword();
+
+        $user->login_id ??= $user->staffMember?->loginId();
+        $user->password = $password;
+        $user->must_change_password = true;
+        $user->save();
+        $user->tokens()->delete();
+
+        AuditLog::record($request->user(), 'password_reset', $user, $this->label($user));
+
+        return response()->json([
+            'credentials' => [[
+                'name' => $user->name,
+                'department' => $user->department,
+                'email' => $user->email,
+                'login_id' => $user->login_id,
+                'password' => $password,
+            ]],
+        ]);
+    }
+
+    private function label(User $user): string
+    {
+        return $user->email ?? $user->login_id ?? $user->name;
     }
 }
