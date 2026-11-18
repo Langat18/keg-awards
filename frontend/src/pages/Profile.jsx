@@ -75,7 +75,7 @@ export default function Profile() {
         <div className="mt-5 flex items-center gap-4">
           <Avatar name={user?.name} size="lg" />
           <div>
-            <p className="font-semibold">{user?.email}</p>
+            <p className="font-semibold">{user?.email || user?.login_id}</p>
             <p className="text-sm text-muted">
               {isAdmin ? 'Administrator' : 'Staff'}
               {user?.created_at && `, joined ${formatDate(user.created_at)}`}
@@ -96,7 +96,12 @@ export default function Profile() {
               onChange={e => setDetails(d => ({ ...d, department: e.target.value }))}
               placeholder="e.g. Finance and Administration"
             />
-            <Input label="Email address" value={user?.email || ''} disabled hint="Contact ICT to change your email address." className="sm:col-span-2" />
+            {user?.email && (
+              <Input label="Email address" value={user.email} disabled hint="Contact the administrator to change your email address." />
+            )}
+            {user?.login_id && (
+              <Input label="Sign-in ID" value={user.login_id} disabled hint="You can also sign in with this." />
+            )}
           </div>
           <Button type="submit" className="mt-6" loading={savingDetails} disabled={!detailsChanged}>
             Save details

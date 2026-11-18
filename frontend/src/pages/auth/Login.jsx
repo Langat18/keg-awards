@@ -22,7 +22,8 @@ export default function Login() {
     setError('');
     try {
       const user = await login(form.email.trim(), form.password);
-      navigate(user.role === 'admin' ? '/management' : '/staff', { replace: true });
+      const home = user.role === 'admin' ? '/management' : '/staff';
+      navigate(user.must_change_password ? '/set-password' : home, { replace: true });
     } catch (err) {
       setError(errorMessage(err, 'Sign in failed. Try again.'));
     } finally {
@@ -57,10 +58,12 @@ export default function Login() {
 
       <form onSubmit={submit} className="space-y-5">
         <Input
-          label="Email address"
-          type="email"
-          autoComplete="email"
-          placeholder="firstname.lastname@ksg.ac.ke"
+          label="Email or sign-in ID"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          placeholder="you@ksg.ac.ke or KSG-0042"
+          hint="No email? Use the sign-in ID on your slip, or your PF number."
           required
           value={form.email}
           onChange={e => setForm(f => ({ ...f, email: e.target.value }))}

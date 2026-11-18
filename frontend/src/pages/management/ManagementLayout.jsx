@@ -3,9 +3,10 @@ import AppShell from '../../components/AppShell';
 const LINKS = [
   { to: '/management', label: 'Overview', icon: 'grid', end: true },
   { to: '/management/cycles', label: 'Cycles', icon: 'layers' },
-  { to: '/management/nominations', label: 'Nominations', icon: 'list' },
+  { to: '/management/nominations', label: 'Nominations', icon: 'pen' },
   { to: '/management/results', label: 'Results', icon: 'trophy' },
-  { to: '/management/users', label: 'Staff accounts', icon: 'users' },
+  { to: '/management/staff', label: 'Staff list', icon: 'list' },
+  { to: '/management/users', label: 'Accounts', icon: 'users' },
 ];
 
 export default function ManagementLayout() {

@@ -39,7 +39,7 @@ class ProfileController extends Controller
             ]);
         }
 
-        $user->update(['password' => $data['password']]);
+        $user->update(['password' => $data['password'], 'must_change_password' => false]);
 
         $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
 

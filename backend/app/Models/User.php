@@ -13,7 +13,9 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'login_id',
         'password',
+        'must_change_password',
         'department',
         'role',
         'is_active',
@@ -28,10 +30,16 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password'         => 'hashed',
-            'is_active'        => 'boolean',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
             'can_view_results' => 'boolean',
+            'must_change_password' => 'boolean',
         ];
+    }
+
+    public function staffMember()
+    {
+        return $this->hasOne(StaffMember::class);
     }
 
     public function isAdmin(): bool

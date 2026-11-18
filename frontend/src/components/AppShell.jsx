@@ -42,7 +42,7 @@ function UserMenu({ profilePath, subtitle }) {
         <div className="absolute right-0 mt-2 w-60 overflow-hidden rounded-lg border border-line bg-white shadow-lg shadow-brand-ink/10">
           <div className="border-b border-line px-4 py-3">
             <p className="truncate text-sm font-semibold">{user?.name}</p>
-            <p className="truncate text-xs text-muted">{user?.email}</p>
+            <p className="truncate text-xs text-muted">{user?.email || user?.login_id}</p>
           </div>
           <Link to={profilePath} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-canvas">
             <Icon name="user" className="h-4 w-4 text-muted" /> Profile and password

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import api, { TOKEN_KEY, USER_KEY } from '../api/axios';
 
 const AuthContext = createContext(null);
@@ -13,6 +13,7 @@ function readStoredUser() {
 
 export function AuthProvider({ children }) {
   const [user, setUserState] = useState(readStoredUser);
+  const signInPassword = useRef('');
 
   const setUser = useCallback(next => {
     if (next) localStorage.setItem(USER_KEY, JSON.stringify(next));
@@ -32,8 +33,9 @@ export function AuthProvider({ children }) {
     api.get('/auth/me').then(({ data }) => setUser(data)).catch(() => {});
   }, [setUser]);
 
-  const login = useCallback(async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password });
+  const login = useCallback(async (identifier, password) => {
+    const { data } = await api.post('/auth/login', { login: identifier, password });
+    signInPassword.current = data.user.must_change_password ? password : '';
     return startSession(data);
   }, [startSession]);
 
@@ -45,6 +47,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     await api.post('/auth/logout').catch(() => {});
     localStorage.removeItem(TOKEN_KEY);
+    signInPassword.current = '';
     setUser(null);
   }, [setUser]);
 
@@ -54,12 +57,13 @@ export function AuthProvider({ children }) {
     return {
       user,
       setUser,
+      signInPassword,
       login,
       register,
       logout,
       isAdmin,
       canViewResults: isAdmin || Boolean(user?.can_view_results),
-      homePath: isAdmin ? '/management' : '/staff',
+      homePath: user?.must_change_password ? '/set-password' : isAdmin ? '/management' : '/staff',
     };
   }, [user, setUser, login, register, logout]);
 
